@@ -1,0 +1,5 @@
+export const MAX_MESSAGE_LENGTH = 4000;
+export const MAX_CONVERSATION_LENGTH = 24000;
+export const MAX_REQUEST_BYTES = 65536;
+export const MAX_MODEL_CONTEXT_BYTES = 131072;
+export const MAX_OUTPUT_TOKENS = 4096;

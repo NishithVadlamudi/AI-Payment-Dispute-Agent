@@ -1,0 +1,50 @@
+{
+  "name": "ai-payment-dispute-agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "node --use-env-proxy --use-system-ca node_modules/next/dist/bin/next dev --hostname 0.0.0.0",
+    "build": "next build",
+    "start": "node --use-env-proxy --use-system-ca node_modules/next/dist/bin/next start --hostname 0.0.0.0",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:db": "vitest run --config vitest.db.config.ts",
+    "db:start": "supabase start",
+    "db:test:start": "tsx scripts/start-test-db.ts",
+    "db:test:stop": "docker compose --env-file .env.test-db -f compose.test.yml down",
+    "db:reset": "supabase db reset --no-seed",
+    "db:seed": "tsx --env-file-if-exists=.env.local scripts/seed.ts",
+    "eval": "node --use-env-proxy --use-system-ca --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/evaluate.ts",
+    "eval:validate": "node --use-env-proxy --use-system-ca --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/evaluate.ts --validate"
+  },
+  "dependencies": {
+    "@google/genai": "^2.30.0",
+    "@supabase/supabase-js": "^2.118.0",
+    "lucide-react": "^0.468.0",
+    "next": "^16.4.2",
+    "openai": "^6.0.0",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "server-only": "^0.0.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.0",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.0",
+    "@types/node": "^24.0.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "jsdom": "^27.0.0",
+    "supabase": "^2.0.0",
+    "tailwindcss": "^4.1.0",
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

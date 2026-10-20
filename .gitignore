@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.next/
+coverage/
+.vercel/
+supabase/.temp/
+supabase/.branches/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+
+# Generated live evaluation reports (persisted separately in Postgres).
+evals/results/
+.demo-capture/
