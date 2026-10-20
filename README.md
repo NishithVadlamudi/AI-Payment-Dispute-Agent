@@ -55,6 +55,8 @@ flowchart LR
 
 ## Run locally
 
+For the complete app and Codex skills handoff, use [Continue locally with Codex](docs/local-development.md).
+
 Use **Node.js 24**, npm and Docker. Get a Gemini key from [Google AI Studio](https://aistudio.google.com/apikey) and verify your project's model access, pricing and quotas; free usage is not guaranteed.
 
 ```bash
