@@ -1,0 +1,14 @@
+.git
+.next
+node_modules
+coverage
+.env
+.env.*
+!.env.example
+.agents
+.ui-checks
+.demo-capture
+.vercel
+**/__pycache__
+*.tsbuildinfo
+skills-lock.json

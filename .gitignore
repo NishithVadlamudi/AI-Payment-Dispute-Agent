@@ -13,3 +13,9 @@ supabase/.branches/
 # Generated live evaluation reports (persisted separately in Postgres).
 evals/results/
 .demo-capture/
+
+# Local browser evidence, regenerated from the seeded app.
+.ui-checks/
+
+# Generated database deployment bundle.
+deploy/db-init.cjs

@@ -1,6 +1,6 @@
 # AI Payment Dispute Agent
 
-Describe a payment problem, watch an AI agent investigate fictional transactions, and review its proposed fix. Read-only tools run automatically; refunds enter a human approval queue. Built with **Next.js, TypeScript, Tailwind, Supabase Postgres, Zod, Vitest, and Gemini native tool use**, with an explicit optional OpenAI adapter.
+Describe a payment problem, watch an AI agent investigate fictional transactions, and review its proposed fix. Read-only tools run automatically; refunds enter a human approval queue. Built with **Next.js, TypeScript, Tailwind, Postgres, PostgREST, Zod, Vitest, and Gemini native tool use**, with an explicit optional OpenAI adapter.
 
 No real banks or payment processors are connected. The public reviewer role is fictional, not authenticated staff access.
 
@@ -8,11 +8,20 @@ No real banks or payment processors are connected. The public reviewer role is f
 
 *Recorded Gemini investigation replay with a simulated approval screen, clearly labeled in the recording. All records are fictional; generating this GIF makes no model calls or database writes. The running app uses the configured provider and reports failures rather than substituting this replay.*
 
+![Responsive Resolve payment workspace](public/workspace-desktop.png)
+
+The new green workspace is implemented at `/payments`, including responsive tables, dark mode, customer-scoped payment evidence and unsent investigation drafts. See [responsive design and iOS installation](docs/responsive-workspace.md) for architecture, browser coverage and limits. The GIF above records the earlier visual skin.
+
+## Free hosting
+
+The deployment target is **Render Free + Neon Free**, with no Vercel or Supabase hosting required. [Deployment setup](docs/free-deployment.md) includes the one-service Blueprint, private environment settings, automated migrations, free-plan limits and verification status. A live deployment still requires your provider accounts.
+
 ## Try the workflow
 
 | Page | Purpose |
 | --- | --- |
 | `/` | Project introduction and Try it button |
+| `/payments` | Customer-scoped dashboard, payment activity, history, details and investigation drafts |
 | `/demo` | Select a customer, describe a problem, inspect streamed text and collapsible tool activity |
 | `/approvals` | Review evidence and approve or reject a mock refund |
 | `/under-the-hood` | Inspect sanitized traces, tokens, latency, estimated cost and evaluation reports |
@@ -98,7 +107,7 @@ npm run eval:validate # Validate the 40-case dataset without model calls
 npm run eval          # Live evaluation; consumes quota and daily allowance
 ```
 
-The current checks include **117 unit/API/UI tests** and **28 database integration tests**, including concurrent approvals, uniqueness constraints, refund limits, customer scope, injection controls, the agent loop and persistent tracing. Mobile/light/dark browser checks covered all four pages at 320, 390 and 1280 pixels.
+The current checks include **128 unit/API/UI tests** and **29 database integration tests**, including concurrent approvals, uniqueness constraints, refund limits, customer scope, injection controls, the agent loop and persistent tracing. Responsive browser checks cover five pages at seven viewport sizes (320–1920px, including landscape) in light and dark modes. Safari/WebKit device verification remains outstanding; see [the verification notes](docs/responsive-workspace.md).
 
 The recorded full live evaluation is **partial: 12/40 end-to-end passes and 28 infrastructure errors** (15 Gemini quota responses, then 13 daily-allowance blocks). The passes include four native duplicate investigations and eight deterministic guard refusals. **Full model accuracy remains unmeasured.** Missing cost is unknown, not zero. [Measured results and limitations](docs/evaluation-results.md).
 

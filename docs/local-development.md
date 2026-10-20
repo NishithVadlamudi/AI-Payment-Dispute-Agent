@@ -23,7 +23,7 @@ npm run db:seed
 npm run dev
 ```
 
-Open port 3000 in your local browser. Try the customer scenarios, inspect tool activity, then open Approvals and Under the hood. AI quota failures are reported honestly. Human approval is required even for fictional refunds.
+Open port 3000 in your local browser. Start at `/payments`, choose a demo customer, inspect a payment, and prepare an investigation. Review the unsent draft on `/demo` before sending it, then use Approvals and Activity. See [responsive workspace and iOS installation](responsive-workspace.md). AI quota failures are reported honestly. Human approval is required even for fictional refunds.
 
 ```bash
 npm test
