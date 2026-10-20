@@ -2,6 +2,8 @@
 
 The application is on GitHub. Cloud environment settings, injected API keys, Docker volumes and installed skills are separate and do not transfer when you clone it. No cloud environment is required to develop or run the app locally.
 
+The default workflow below runs both the application and Postgres on your computer. It needs no Neon login, MCP connection, Vercel account or hosted database. The optional Neon configuration is only for a later hosted database setup. AI responses still use your configured model provider over the internet; dashboard browsing and database tests do not need model API calls.
+
 ## Start the app
 
 Use macOS, Linux, or WSL2 on Windows. Install Git, Node.js 24, and Docker with Compose; start Docker. Full local Supabase is an alternative described in [the engineering guide](engineering.md).

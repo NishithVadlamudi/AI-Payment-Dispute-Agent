@@ -19,3 +19,4 @@ evals/results/
 
 # Generated database deployment bundle.
 deploy/db-init.cjs
+.neon

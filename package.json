@@ -20,11 +20,15 @@
     "db:seed": "tsx --env-file-if-exists=.env.local scripts/seed.ts",
     "eval": "node --use-env-proxy --use-system-ca --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/evaluate.ts",
     "eval:validate": "node --use-env-proxy --use-system-ca --conditions=react-server --env-file-if-exists=.env.local --import tsx scripts/evaluate.ts --validate",
-    "db:deploy": "tsx --env-file-if-exists=.env.deploy scripts/deploy-database.ts",
-    "build:deploy": "esbuild scripts/deploy-database.ts --bundle --platform=node --format=cjs --external:pg-native --outfile=deploy/db-init.cjs"
+    "db:deploy": "tsx --env-file-if-exists=.env --env-file-if-exists=.env.local --env-file-if-exists=.env.deploy scripts/deploy-database.ts",
+    "build:deploy": "esbuild scripts/deploy-database.ts --bundle --platform=node --format=cjs --external:pg-native --outfile=deploy/db-init.cjs",
+    "prestart:neon": "npm run build:deploy",
+    "start:neon": "node --env-file-if-exists=.env --env-file-if-exists=.env.local scripts/start-neon.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.30.0",
+    "@neon/config": "^1.9.2",
+    "@neon/env": "^1.6.3",
     "@supabase/postgrest-js": "^2.118.0",
     "@supabase/supabase-js": "^2.118.0",
     "lucide-react": "^0.468.0",

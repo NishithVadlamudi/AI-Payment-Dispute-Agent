@@ -22,7 +22,30 @@ No Vercel or hosted Supabase account is required. The repository includes a Rend
 
 This creates a portfolio demo, not a real payment processor or an authenticated bank support system. All refunds are mock ledger entries. The existing partial live evaluation report is not replaced by the deployment checks.
 
-## How it runs
+## Neon CLI setup for this repository
+
+The project includes Neon's `neon` and `neon-postgres` agent skills and an OAuth-only Codex MCP configuration pinned to project `damp-truth-10948457`. No API key is stored in the MCP configuration. Codex must authorize the MCP connection before its tools can be used. The local `.neon` project/branch context and environment files are ignored by Git.
+
+To finish linking the existing production branch from an authenticated terminal:
+
+```bash
+npx neon@latest login
+npx neon@latest init -y --org-id org-hidden-union-27009054 --project-id damp-truth-10948457 --branch production --services postgres --no-agent-setup
+npx neon@latest config plan
+npx neon@latest deploy
+npm run build
+npm run start:neon
+```
+
+`neon deploy` configures the backend and pulls its connection variables; it does not publish the Next.js frontend. `start:neon` runs the existing standalone application and private PostgREST adapter. Install the PostgREST v13 executable first, or set `POSTGREST_EXECUTABLE` to its path; the Render Docker image already includes it. If port 3001 is occupied, set `RESOLVE_DATA_PORT` to a free port. The local launcher generates an in-memory JWT secret when none is supplied; a hosted deployment keeps using its private configured secret.
+
+Both the adapter and migration runner prefer `DATABASE_URL_UNPOOLED`, falling back to `DATABASE_URL` for existing deployments with a direct URL. Preserve both variables supplied by Neon: PostgREST and the advisory-lock migration workflow need session state. The migration command reads `.env`, `.env.local`, then optional `.env.deploy`; exported environment values take priority. The existing data-access client and SQL migrations are retained.
+
+On this restricted workspace, the CLI uses `--config-dir /workspace/shared/neon-cli` because the default home configuration directory is not writable. Include that flag in login, init, plan and deploy commands here. The initial link was written **offline and unverified**: the Neon API and MCP endpoint returned network-policy `403 Forbidden`, and no Neon credentials were available. Allow access to `console.neon.tech`, `mcp.neon.tech` and Neon's browser sign-in domains, then authenticate and retry before claiming any successful Neon provisioning or database verification. Do not paste connection strings or API keys into chat.
+
+The setup checks passed `npm run build` (including TypeScript) and all 128 tests in `npm test`. `npm run start:neon` was then exercised against the existing isolated local Postgres fixture with an invalid pooled URL and valid `DATABASE_URL_UNPOOLED`: migration startup retained existing records, the health/customers/payments APIs and dashboard returned HTTP 200, and Chromium loaded payment history plus matching-charge details with no page errors. These are local runtime checks, not a live Neon end-to-end result. Live provisioning, environment pull and Neon connectivity remain unverified until the access blockers above are resolved.
+
+## Runtime architecture
 
 The Docker image runs a Node.js 24 Next.js standalone server and a loopback-only PostgREST process. The external platform exposes only the web server. PostgREST connects to Neon using a certificate-verified connection; the app’s owner-role token is generated in memory from the server secret and never enters browser bundles. The SQL schema, refund locks, uniqueness constraints, rate controls and audit tables remain Postgres-based.
 

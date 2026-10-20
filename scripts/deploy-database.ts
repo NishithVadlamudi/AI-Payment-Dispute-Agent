@@ -3,7 +3,8 @@ import { Client } from "pg";
 import { createSeedData } from "../src/lib/demo/seed-data";
 
 async function deployDatabase() {
-  const connectionString = process.env.DATABASE_URL;
+  const connectionString =
+    process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
   if (!connectionString)
     throw new Error(
       "Set DATABASE_URL privately before running database deployment.",

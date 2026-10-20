@@ -2,7 +2,8 @@ import { createHmac } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
 import { setTimeout } from "node:timers/promises";
 
-const database = process.env.DATABASE_URL;
+// PostgREST and migrations require session state; use Neon's direct connection.
+const database = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
 const adapterPort = process.env.RESOLVE_DATA_PORT || "3001";
 const adapterUrl = `http://127.0.0.1:${adapterPort}`;
 const secret = process.env.PGRST_JWT_SECRET;
