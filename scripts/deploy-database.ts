@@ -24,6 +24,11 @@ async function deployDatabase() {
     await client.query(`do $$ begin
     if not exists(select 1 from pg_roles where rolname='anon') then create role anon nologin; end if;
     if not exists(select 1 from pg_roles where rolname='service_role') then create role service_role nologin; end if;
+    -- PostgreSQL 16+ gives a CREATEROLE creator ADMIN but not SET membership.
+    -- The private adapter must be able to enter its restricted anonymous role.
+    if not pg_has_role(current_user, 'anon', 'SET') then
+      execute format('grant anon to %I with inherit false, set true', current_user);
+    end if;
   end $$;
   grant usage on schema public to anon, service_role;
   alter default privileges in schema public grant select on tables to anon;

@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { existsSync } from "node:fs";
 import { spawn, spawnSync } from "node:child_process";
 import { setTimeout } from "node:timers/promises";
 
@@ -25,10 +26,13 @@ const databaseUrl = new URL(database);
 const role = decodeURIComponent(databaseUrl.username);
 if (!["localhost", "127.0.0.1", "db"].includes(databaseUrl.hostname)) {
   databaseUrl.searchParams.set("sslmode", "verify-full");
-  databaseUrl.searchParams.set(
-    "sslrootcert",
-    "/etc/ssl/certs/ca-certificates.crt",
-  );
+  const certificate = process.env.RESOLVE_CA_CERT || databaseUrl.searchParams.get("sslrootcert") ||
+    ["/etc/ssl/certs/ca-certificates.crt", "/etc/ssl/cert.pem"].find(existsSync);
+  if (!certificate || !existsSync(certificate)) {
+    console.error("Set RESOLVE_CA_CERT to an existing trusted CA certificate bundle.");
+    process.exit(1);
+  }
+  databaseUrl.searchParams.set("sslrootcert", certificate);
 }
 const adapterDatabase = databaseUrl.toString();
 const encode = (value) =>
@@ -42,7 +46,7 @@ const key = `${header}.${payload}.${signature}`;
 
 // The adapter is loopback-only. Its owner token never reaches browser bundles or disk.
 const adapter = spawn(
-  process.env.POSTGREST_EXECUTABLE || "/usr/local/bin/postgrest",
+  process.env.POSTGREST_EXECUTABLE || "postgrest",
   [],
   {
     env: {
