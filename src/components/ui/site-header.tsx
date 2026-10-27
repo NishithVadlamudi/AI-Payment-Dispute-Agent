@@ -13,7 +13,11 @@ import {
 import { ThemeToggle } from "./theme-toggle";
 
 export type PageSection =
-  "home" | "payments" | "demo" | "approvals" | "observability";
+  | "home"
+  | "payments"
+  | "demo"
+  | "approvals"
+  | "observability";
 export const workspaceSections = [
   { id: "payments", href: "/payments", label: "Overview", icon: CreditCard },
   { id: "demo", href: "/demo", label: "Investigate", icon: Sparkles },
@@ -71,6 +75,11 @@ export function SiteHeader({ active }: { active: PageSection }) {
     <>
       <header className="site-header">
         <ResolveBrand />
+        <span className="workspace-location">
+          Workspace <span>/</span>{" "}
+          {workspaceSections.find((section) => section.id === active)?.label ||
+            "Home"}
+        </span>
         <div className="desktop-navigation">
           <AppLinks active={active} />
         </div>

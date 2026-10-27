@@ -1,4 +1,5 @@
-import { useId } from "react";
+"use client";
+import { useState } from "react";
 import type { Transaction } from "@/lib/db/schemas";
 import { dailyVolume, money, paymentDate } from "@/lib/payments/ledger";
 
@@ -11,8 +12,10 @@ export function VolumeChart({
   currency: string;
   end: string;
 }) {
-  const pattern = useId().replaceAll(":", "");
-  const days = dailyVolume(payments, end);
+  const [period, setPeriod] = useState(14);
+  const [active, setActive] = useState<string | null>(null);
+  const days = dailyVolume(payments, end).slice(-period);
+  const selected = days.find((day) => day.date === active);
   const total = days.reduce((sum, day) => sum + day.cents, 0);
   const largest = Math.max(...days.map((day) => day.cents), 1);
   const ceiling = Math.ceil(largest / 10000) * 10000;
@@ -23,84 +26,84 @@ export function VolumeChart({
     >
       <div className="panel-title">
         <h2 id="volume-heading">Payment activity</h2>
-        <span>
-          {paymentDate(days[0].date)}–{paymentDate(end)}
-        </span>
+        <div className="chart-period" aria-label="Chart period">
+          {[7, 14].map((count) => (
+            <button
+              key={count}
+              aria-pressed={period === count}
+              onClick={() => {
+                setPeriod(count);
+                setActive(null);
+              }}
+            >
+              {count} days
+            </button>
+          ))}
+        </div>
       </div>
       <div className="chart-summary">
         <strong>{money(total, currency)}</strong>
-        <span>Successful charges · 14 days</span>
+        <span>Successful charges · {period} days</span>
       </div>
-      <svg
-        className="payment-chart-svg"
-        viewBox="0 0 500 240"
-        role="img"
-        aria-label={`Daily successful payment volume, ${currency}, ${paymentDate(days[0].date)} to ${paymentDate(end)}`}
+      <div className="chart-inspect">
+        {selected ? (
+          <>
+            <span>{paymentDate(selected.date)} · UTC</span>
+            <strong>{money(selected.cents, currency)}</strong>
+          </>
+        ) : (
+          <>
+            <span>
+              {paymentDate(days[0].date)} – {paymentDate(end)}
+            </span>
+            <span>Explore a day for its total</span>
+          </>
+        )}
+      </div>
+      <div
+        className="volume-visual"
+        role="group"
+        aria-label={`Daily successful payment volume, ${currency}`}
       >
-        <defs>
-          <pattern
-            id={pattern}
-            width="5"
-            height="5"
-            patternUnits="userSpaceOnUse"
-            patternTransform="rotate(35)"
-          >
-            <rect width="5" height="5" fill="var(--chart-pale)" />
-            <path d="M0 0V5" stroke="var(--chart-stripe)" strokeWidth="1" />
-          </pattern>
-        </defs>
-        {[0, 1, 2, 3].map((tick) => {
-          const value = (ceiling * tick) / 3,
-            y = 190 - (value / ceiling) * 170;
-          return (
-            <g key={tick}>
-              <path
-                d={`M52 ${y}H495`}
-                stroke="var(--border)"
-                strokeDasharray="4 5"
+        <div className="volume-axis" aria-hidden="true">
+          {[1, 0.5, 0].map((scale) => (
+            <span key={scale}>
+              {new Intl.NumberFormat("en-US", {
+                notation: "compact",
+                maximumFractionDigits: 1,
+              }).format((ceiling * scale) / 100)}
+            </span>
+          ))}
+        </div>
+        <div
+          className="volume-bars"
+          style={{ gridTemplateColumns: `repeat(${period}, minmax(0, 1fr))` }}
+        >
+          {days.map((day, index) => (
+            <button
+              key={day.date}
+              className={`volume-day ${active === day.date ? "is-active" : ""}`}
+              aria-label={`${paymentDate(day.date)}: ${money(day.cents, currency)}`}
+              aria-pressed={active === day.date}
+              onMouseEnter={() => setActive(day.date)}
+              onFocus={() => setActive(day.date)}
+              onClick={() => setActive(day.date)}
+            >
+              <span
+                className={`volume-bar ${day.cents === largest ? "peak" : ""}`}
+                style={{
+                  height: `${Math.max((day.cents / ceiling) * 100, 1.5)}%`,
+                }}
               />
-              <text x="43" y={y + 4} textAnchor="end">
-                {new Intl.NumberFormat("en-US", {
-                  notation: "compact",
-                  maximumFractionDigits: 1,
-                }).format(value / 100)}
-              </text>
-            </g>
-          );
-        })}
-        {days.map((day, i) => {
-          const height = (day.cents / ceiling) * 170,
-            x = 56 + i * 31;
-          return (
-            <g key={day.date}>
-              <rect
-                x={x}
-                y={190 - height}
-                width="20"
-                height={height}
-                rx="10"
-                fill={
-                  day.cents === largest
-                    ? "var(--green-solid)"
-                    : `url(#${pattern})`
-                }
-              >
-                <title>
-                  {paymentDate(day.date)}: {money(day.cents, currency)}
-                </title>
-              </rect>
-              {(i % 3 === 0 || i === 13) && (
-                <text x={x + 10} y="215" textAnchor="middle">
-                  {new Date(day.date).getUTCDate()}
-                </text>
-              )}
-            </g>
-          );
-        })}
-        <text x="270" y="237" textAnchor="middle">
-          Daily totals · {currency} · UTC
-        </text>
-      </svg>
+              <span className="volume-day-label" aria-hidden="true">
+                {period === 7 || index % 2 === 0 || index === days.length - 1
+                  ? new Date(day.date).getUTCDate()
+                  : ""}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
       <details className="chart-data">
         <summary>View chart data</summary>
         <ul>

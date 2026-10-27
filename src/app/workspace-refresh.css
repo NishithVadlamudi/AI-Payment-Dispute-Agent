@@ -1,0 +1,825 @@
+/* The application fills the viewport; the marketing page keeps its own layout. */
+.workspace-location {
+  display: none;
+}
+.app-frame {
+  --bg: #f6f8fa;
+  --surface: #fff;
+  --soft: #f1f5f4;
+  --text: #172a29;
+  --muted: #697b7b;
+  --border: #e4eaea;
+  --pale: #eaf5ef;
+  --green: #167457;
+  --green-solid: #167457;
+  width: 100%;
+  max-width: none;
+  min-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+}
+[data-theme="dark"] .app-frame {
+  --bg: #101719;
+  --surface: #182225;
+  --soft: #202e31;
+  --text: #e8f0ef;
+  --muted: #99aeaf;
+  --border: #29383c;
+  --pale: #1b382e;
+  --green: #8ed3b3;
+  --green-solid: #237c5c;
+}
+.app-frame .site-header {
+  max-width: none;
+  height: 72px;
+  margin: 0;
+  padding: 0 28px;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  gap: 28px;
+}
+.app-frame .site-brand {
+  font-size: 25px;
+  min-width: 150px;
+}
+.app-frame .desktop-navigation {
+  display: none;
+}
+.app-frame .workspace-location {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-right: auto;
+  font-size: 13px;
+  color: var(--text);
+}
+.workspace-location > span {
+  color: var(--muted);
+}
+.app-frame .workspace-demo-label {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 9px;
+  font-size: 11px;
+}
+.app-frame .site-header .icon-button {
+  border-radius: 9px;
+  background: transparent;
+}
+.app-frame .workspace-body {
+  grid-template-columns: 208px minmax(0, 1fr);
+  gap: 0;
+  min-height: calc(100dvh - 72px);
+}
+.app-frame .workspace-rail {
+  position: sticky;
+  top: 72px;
+  height: calc(100dvh - 72px);
+  margin: 0;
+  padding: 30px 14px 22px;
+  border-radius: 0;
+  align-items: stretch;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  gap: 6px;
+}
+.rail-caption {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  color: var(--muted);
+  padding: 0 14px 14px;
+}
+.app-frame .workspace-rail a {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  font-size: 13px;
+}
+.app-frame .workspace-rail a[aria-current="page"],
+.app-frame .workspace-rail a[aria-current="page"]:hover {
+  color: var(--green);
+  background: var(--pale);
+  font-weight: 600;
+}
+.rail-footer {
+  margin-top: auto;
+  padding: 20px 10px 0;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+}
+.rail-demo-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--green);
+  margin-top: 5px;
+  flex: none;
+}
+.rail-footer strong {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+}
+.rail-footer small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+  line-height: 1.6;
+}
+.app-frame .workspace-content {
+  padding: 24px clamp(22px, 2.5vw, 52px);
+  min-width: 0;
+}
+.app-frame .payments-main {
+  padding: 0;
+}
+.workspace-eyebrow {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.7px;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.app-frame .payments-heading {
+  margin-bottom: 18px;
+}
+.app-frame .payments-heading h1 {
+  font-size: clamp(27px, 2.25vw, 36px);
+  letter-spacing: -1.3px;
+  font-weight: 600;
+}
+.app-frame .payments-heading h1 span {
+  font-weight: 500;
+  color: var(--text);
+}
+.app-frame .payments-heading p {
+  font-size: 13px;
+  margin-top: 9px;
+}
+.app-frame .soft-button,
+.app-frame .green-button {
+  border-radius: 8px;
+  font-size: 12px;
+  min-height: 40px;
+}
+.app-frame .soft-button {
+  border: 1px solid var(--border);
+}
+.app-frame .account-controls {
+  background: var(--surface);
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 22px;
+}
+.app-frame .account-controls select {
+  border-radius: 7px;
+  min-height: 36px;
+  background: var(--bg);
+}
+.payment-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+}
+.metric-card {
+  min-width: 0;
+  padding: 17px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-align: left;
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.metric-card > span {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+.metric-card > strong {
+  font-size: clamp(25px, 2.2vw, 34px);
+  font-weight: 600;
+  letter-spacing: -1px;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+.metric-card > small {
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.metric-inline {
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--muted);
+  margin-left: 9px;
+}
+.actionable-metric:hover:not(:disabled) {
+  border-color: var(--green);
+  background: var(--pale);
+}
+.metric-card:disabled {
+  opacity: 1;
+  cursor: default;
+}
+.app-frame .payment-grid {
+  grid-template-columns: minmax(0, 1fr) 310px;
+  gap: 22px;
+  align-items: start;
+}
+.app-frame .surface-panel {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 2px 3px #0a252803;
+}
+.app-frame .payment-left-stack {
+  grid-column: 2;
+  grid-row: 1;
+}
+.app-frame .payment-chart {
+  grid-column: 1;
+  grid-row: 1;
+  min-height: 0;
+  padding: 18px 24px 8px;
+}
+.app-frame .payment-ledger {
+  grid-column: 1;
+  grid-row: 2;
+  padding: 22px 22px 0;
+}
+.app-frame .payment-right-stack {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.app-frame .account-card {
+  padding: 19px 16px 16px;
+}
+.app-frame .account-card > p {
+  margin-bottom: 14px;
+}
+.app-frame .virtual-payment-card {
+  min-height: 160px;
+  border-radius: 9px;
+  background: linear-gradient(120deg, #205e4c, #1d7960);
+  padding: 18px;
+}
+.app-frame .virtual-card-total {
+  font-size: 28px;
+}
+.app-frame .virtual-card-label {
+  margin-top: 17px;
+}
+.app-frame .virtual-card-footer {
+  margin-top: 18px;
+}
+.app-frame .refund-summary {
+  padding: 14px 18px;
+  margin-top: 12px;
+}
+.app-frame .refund-summary h2 {
+  margin-bottom: 4px;
+}
+.app-frame .refund-summary strong {
+  font-size: 22px;
+}
+.app-frame .refund-summary a {
+  border-radius: 6px;
+}
+.app-frame .panel-title {
+  margin-bottom: 14px;
+}
+.app-frame .panel-title h2 {
+  font-size: 14px;
+  font-weight: 600;
+}
+.app-frame .chart-summary strong {
+  font-size: 30px;
+  font-weight: 600;
+}
+.chart-period {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  background: var(--soft);
+  border-radius: 7px;
+}
+.chart-period button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  border-radius: 5px;
+  font-size: 11px;
+  min-height: 30px;
+  padding: 5px 10px;
+}
+.chart-period button[aria-pressed="true"] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px #0000000d;
+}
+.chart-inspect {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  min-height: 28px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.chart-inspect strong {
+  color: var(--green);
+  font-weight: 500;
+}
+.volume-visual {
+  display: flex;
+  gap: 12px;
+  height: 120px;
+  margin: 8px 0 23px;
+}
+.volume-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 34px;
+  font-size: 10px;
+  color: var(--muted);
+  padding-bottom: 0;
+  text-align: right;
+  flex: none;
+}
+.volume-bars {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  align-items: end;
+  gap: clamp(3px, 1vw, 15px);
+  border-bottom: 1px solid var(--border);
+  background: repeating-linear-gradient(
+    to top,
+    transparent 0,
+    transparent calc(50% - 1px),
+    var(--border) calc(50% - 1px),
+    var(--border) 50%
+  );
+}
+.volume-day {
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 100%;
+  position: relative;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 4px;
+}
+.volume-day:active:not(:disabled) {
+  transform: none;
+}
+.volume-bar {
+  display: block;
+  width: 100%;
+  max-width: 36px;
+  background: var(--chart-pale);
+  border-radius: 5px 5px 0 0;
+  transition: background-color 140ms ease;
+  pointer-events: none;
+}
+.volume-bar.peak,
+.volume-day.is-active .volume-bar {
+  background: var(--green-solid);
+}
+.volume-day.is-active {
+  background: var(--pale);
+}
+.volume-day-label {
+  position: absolute;
+  top: calc(100% + 7px);
+  font-size: 10px;
+  color: var(--muted);
+}
+.app-frame .chart-data {
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+}
+.app-frame .chart-data summary {
+  cursor: pointer;
+  min-height: 34px;
+  padding: 9px 0;
+}
+.app-frame .ledger-controls {
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.app-frame .payment-tabs {
+  gap: 14px;
+}
+.app-frame .payment-tabs button {
+  font-size: 11px;
+}
+.ledger-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+.app-frame .payment-search {
+  width: clamp(140px, 14vw, 230px);
+  border: 1px solid var(--border);
+  border-radius: 7px;
+  background: var(--bg);
+}
+.ledger-sort select,
+.rows-control select {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 11px;
+  min-height: 38px;
+  padding: 5px 8px;
+  max-width: 155px;
+}
+.app-frame .payment-table th {
+  background: var(--bg);
+  padding: 12px 8px;
+  font-size: 10px;
+  font-weight: 500;
+}
+.app-frame .payment-table td {
+  padding: 12px 8px;
+  font-size: 12px;
+}
+.app-frame .payment-table tr:hover td {
+  background: var(--soft);
+}
+.app-frame .payment-identity strong {
+  font-size: 12px;
+}
+.app-frame .merchant-initials {
+  border-radius: 8px;
+  width: 34px;
+  height: 34px;
+  background: var(--pale);
+  color: var(--green);
+}
+.app-frame .payment-status {
+  background: var(--soft);
+  padding: 5px 8px;
+  border-radius: 5px;
+  font-size: 10px;
+}
+.app-frame .payment-status.succeeded {
+  background: var(--pale);
+}
+.rows-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--muted);
+  margin-right: 8px;
+}
+.rows-control select {
+  min-height: 30px;
+  padding: 3px 6px;
+}
+.app-frame .agent-card {
+  padding: 24px;
+  background: var(--surface);
+}
+.app-frame .agent-card-label {
+  font-size: 12px;
+  color: var(--green);
+  margin-bottom: 16px;
+}
+.app-frame .agent-card h2 {
+  font-size: 24px;
+  line-height: 1.2;
+  font-weight: 500;
+  max-width: 260px;
+  letter-spacing: -0.8px;
+}
+.app-frame .agent-card p {
+  font-size: 12px;
+  line-height: 1.8;
+}
+.app-frame .agent-card textarea {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: 8px;
+  padding: 12px;
+  min-height: 104px;
+  font-size: 13px;
+}
+.app-frame .scenario-pills {
+  flex-wrap: wrap;
+  gap: 5px;
+}
+.app-frame .scenario-pills button {
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  font-size: 10px;
+  background: var(--surface);
+  min-height: 32px;
+}
+.app-frame .scenario-pills button:hover {
+  background: var(--pale);
+  border-color: var(--green);
+}
+.app-frame .agent-card .green-button {
+  width: 100%;
+  margin-top: 14px;
+}
+.app-frame .matching-card {
+  padding: 22px;
+}
+.app-frame .matching-card h3 {
+  font-size: 16px;
+}
+.app-frame .matching-card p {
+  font-size: 12px;
+  line-height: 1.7;
+}
+.app-frame .matching-count {
+  font-size: 32px;
+}
+.app-frame .matching-note {
+  border-radius: 7px;
+  padding: 12px;
+  font-size: 10px;
+}
+.app-frame .payment-footer {
+  margin-top: 22px;
+  font-size: 10px;
+}
+.app-frame .payment-detail {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  box-shadow: 0 28px 100px #0003;
+}
+.app-frame .workspace-content .chat-route,
+.app-frame .workspace-content .approvals-page {
+  max-width: none;
+}
+@media (min-width: 1800px) {
+  .app-frame .payment-grid {
+    grid-template-columns: minmax(0, 1fr) 350px;
+  }
+  .app-frame .workspace-body {
+    grid-template-columns: 230px minmax(0, 1fr);
+  }
+  .app-frame .payment-table td {
+    padding-top: 17px;
+    padding-bottom: 17px;
+  }
+}
+@media (max-width: 1150px) {
+  .app-frame .workspace-body {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+  .app-frame .workspace-rail {
+    padding: 24px 12px;
+  }
+  .app-frame .workspace-rail a {
+    padding: 0;
+    justify-content: center;
+  }
+  .rail-caption,
+  .rail-link-label,
+  .rail-footer {
+    display: none;
+  }
+  .app-frame .workspace-content {
+    padding: 24px;
+  }
+  .app-frame .payment-grid {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    gap: 16px;
+  }
+  .payment-metrics {
+    gap: 10px;
+  }
+  .metric-card {
+    padding: 16px 13px;
+  }
+  .metric-card > span {
+    font-size: 11px;
+  }
+  .metric-card > small {
+    font-size: 9px;
+  }
+  .app-frame .site-header .site-brand {
+    min-width: 0;
+  }
+}
+@media (max-width: 900px) {
+  .app-frame .workspace-content {
+    padding: 24px 20px;
+  }
+  .app-frame .payment-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .app-frame .payment-chart {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .app-frame .payment-left-stack {
+    display: none;
+  }
+  .app-frame .payment-ledger {
+    grid-column: 1;
+    grid-row: 2;
+  }
+  .app-frame .payment-right-stack {
+    grid-column: 1;
+    grid-row: 3;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+  .app-frame .account-scope {
+    font-size: 10px;
+  }
+  .app-frame .payment-heading {
+    gap: 12px;
+  }
+}
+@media (max-width: 640px) {
+  .app-frame .site-header {
+    height: 62px;
+    padding: 0 16px;
+    gap: 14px;
+  }
+  .app-frame .workspace-location {
+    display: none;
+  }
+  .app-frame .workspace-body {
+    display: block;
+    min-height: calc(100dvh - 62px);
+  }
+  .app-frame .workspace-rail {
+    display: none;
+  }
+  .app-frame .workspace-content {
+    padding: 24px 16px 95px;
+  }
+  .app-frame .workspace-bottom-nav {
+    border-top: 1px solid var(--border);
+    background: var(--surface);
+  }
+  .app-frame .payments-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .app-frame .payments-heading h1 {
+    font-size: 29px;
+  }
+  .app-frame .payments-heading p {
+    font-size: 12px;
+  }
+  .app-frame .payments-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .app-frame .account-controls {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+  .app-frame .account-controls label {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .app-frame .account-scope {
+    margin-left: 0;
+    font-size: 10px;
+  }
+  .payment-metrics {
+    grid-template-columns: 1fr 1fr;
+    margin-bottom: 18px;
+  }
+  .metric-card {
+    padding: 15px 12px;
+    gap: 10px;
+  }
+  .metric-card > strong {
+    font-size: 26px;
+  }
+  .metric-card > small {
+    font-size: 10px;
+  }
+  .metric-inline {
+    display: block;
+    margin: 4px 0 0;
+    font-size: 10px;
+  }
+  .app-frame .payment-chart {
+    padding: 18px 16px 8px;
+  }
+  .volume-visual {
+    height: 160px;
+  }
+  .chart-inspect {
+    font-size: 9px;
+  }
+  .app-frame .payment-ledger {
+    padding: 18px 14px 0;
+  }
+  .app-frame .ledger-controls {
+    display: flex;
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .ledger-tools {
+    width: 100%;
+    margin-left: 0;
+  }
+  .app-frame .payment-search {
+    width: auto;
+    flex: 1;
+    margin: 0;
+    min-height: 40px;
+  }
+  .app-frame .payment-search input {
+    font-size: 16px;
+  }
+  .ledger-sort select {
+    min-height: 40px;
+    max-width: 124px;
+  }
+  .app-frame .payment-table td {
+    padding: 0;
+  }
+  .app-frame .payment-table .numeric {
+    font-size: 14px;
+  }
+  .app-frame .payment-table td:nth-child(4),
+  .app-frame .payment-table td:nth-child(5) {
+    padding-left: 43px;
+  }
+  .app-frame .payment-table td:nth-child(5) {
+    margin-top: 5px;
+  }
+  .app-frame .payment-table tr {
+    padding: 16px 0;
+  }
+  .app-frame .payment-identity strong {
+    font-size: 13px;
+  }
+  .app-frame .payment-table tr:hover td {
+    background: transparent;
+  }
+  .app-frame .payment-right-stack {
+    display: flex;
+    flex-direction: column;
+  }
+  .app-frame .payment-right-stack > section {
+    width: 100%;
+  }
+  .app-frame .payment-tabs {
+    gap: 14px;
+  }
+  .app-frame .payment-tabs button {
+    font-size: 11px;
+  }
+  .app-frame .ledger-pagination {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .app-frame .ledger-pagination > div {
+    margin-left: auto;
+  }
+  .app-frame .rows-control {
+    margin-right: 0;
+  }
+  .app-frame .payment-footer {
+    font-size: 10px;
+  }
+}

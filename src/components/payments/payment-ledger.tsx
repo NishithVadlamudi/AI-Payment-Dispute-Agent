@@ -17,6 +17,8 @@ export function PaymentLedger({
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("all");
   const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(8);
+  const [sort, setSort] = useState("newest");
   useEffect(() => {
     setQuery("");
     setStatus("all");
@@ -24,18 +26,33 @@ export function PaymentLedger({
   }, [data.customer.id]);
   const filtered = useMemo(
     () =>
-      payments.filter(
-        (payment) =>
-          (status === "all" || payment.status === status) &&
-          `${payment.merchant} ${payment.id} ${shortId(payment.id)}`
-            .toLowerCase()
-            .includes(query.toLowerCase()),
-      ),
-    [payments, status, query],
+      payments
+        .filter(
+          (payment) =>
+            (status === "all" || payment.status === status) &&
+            `${payment.merchant} ${payment.id} ${shortId(payment.id)}`
+              .toLowerCase()
+              .includes(query.toLowerCase()),
+        )
+        .sort((a, b) =>
+          sort === "amount-high"
+            ? b.amount_cents - a.amount_cents
+            : sort === "amount-low"
+              ? a.amount_cents - b.amount_cents
+              : sort === "merchant"
+                ? a.merchant.localeCompare(b.merchant)
+                : sort === "oldest"
+                  ? Date.parse(a.created_at) - Date.parse(b.created_at)
+                  : Date.parse(b.created_at) - Date.parse(a.created_at),
+        ),
+    [payments, status, query, sort],
   );
-  const pages = Math.max(1, Math.ceil(filtered.length / 4));
+  const pages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, pages - 1);
-  const rows = filtered.slice(currentPage * 4, currentPage * 4 + 4);
+  const rows = filtered.slice(
+    currentPage * pageSize,
+    currentPage * pageSize + pageSize,
+  );
   return (
     <section
       className="payment-ledger surface-panel"
@@ -71,19 +88,38 @@ export function PaymentLedger({
             </button>
           ))}
         </div>
-        <label className="payment-search">
-          <Search size={15} aria-hidden="true" />
-          <span className="sr-only">Search payments</span>
-          <input
-            value={query}
-            type="search"
-            onChange={(event) => {
-              setQuery(event.target.value);
-              setPage(0);
-            }}
-            placeholder="Search payments…"
-          />
-        </label>
+        <div className="ledger-tools">
+          <label className="payment-search">
+            <Search size={15} aria-hidden="true" />
+            <span className="sr-only">Search payments</span>
+            <input
+              value={query}
+              type="search"
+              onChange={(event) => {
+                setQuery(event.target.value);
+                setPage(0);
+              }}
+              placeholder="Search payments…"
+            />
+          </label>
+          <label className="ledger-sort">
+            <span className="sr-only">Sort payments</span>
+            <select
+              aria-label="Sort payments"
+              value={sort}
+              onChange={(event) => {
+                setSort(event.target.value);
+                setPage(0);
+              }}
+            >
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+              <option value="amount-high">Amount: high to low</option>
+              <option value="amount-low">Amount: low to high</option>
+              <option value="merchant">Merchant A–Z</option>
+            </select>
+          </label>
+        </div>
       </div>
       <div className="payment-table-wrap">
         <table className="payment-table">
@@ -155,20 +191,51 @@ export function PaymentLedger({
           </tbody>
         </table>
         {!rows.length && (
-          <p className="empty-payments" role="status">
-            {payments.length
-              ? "No payments match these filters."
-              : "No payments recorded for this account yet."}
-          </p>
+          <div className="empty-payments" role="status">
+            <p>
+              {payments.length
+                ? "No payments match these filters."
+                : "No payments recorded for this account yet."}
+            </p>
+            {payments.length > 0 && (
+              <button
+                className="soft-button"
+                onClick={() => {
+                  setQuery("");
+                  setStatus("all");
+                  setPage(0);
+                }}
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
         )}
       </div>
       <div className="ledger-pagination">
         <span role="status">
           {filtered.length
-            ? `Showing ${currentPage * 4 + 1}–${Math.min(currentPage * 4 + 4, filtered.length)} of ${filtered.length} payments`
+            ? `Showing ${currentPage * pageSize + 1}–${Math.min(currentPage * pageSize + pageSize, filtered.length)} of ${filtered.length} payments`
             : "0 payments"}
         </span>
         <div>
+          <label className="rows-control">
+            Rows{" "}
+            <select
+              aria-label="Rows per page"
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value));
+                setPage(0);
+              }}
+            >
+              {[8, 15, 30].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </label>
           <button
             className="icon-button"
             aria-label="Previous payments"

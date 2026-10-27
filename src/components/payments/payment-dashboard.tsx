@@ -10,13 +10,17 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import type { Transaction } from "@/lib/db/schemas";
-import { duplicateCandidates, paymentCsv } from "@/lib/payments/ledger";
+import {
+  duplicateCandidates,
+  paymentCsv,
+  summarizePayments,
+  money,
+} from "@/lib/payments/ledger";
 import { WorkspaceShell } from "../ui/workspace-shell";
 import { InvestigationCard } from "./investigation-card";
 import { PaymentLedger } from "./payment-ledger";
 import { VolumeChart } from "./volume-chart";
 import { PaymentDetail } from "./payment-detail";
-import { AccountSummary } from "./account-summary";
 import { MatchingPayments } from "./matching-payments";
 import { usePaymentWorkspace } from "./use-payment-workspace";
 
@@ -69,6 +73,12 @@ export function PaymentDashboard() {
     visible?.transactions.filter((payment) => payment.currency === currency) ||
     [];
   const matches = duplicateCandidates(payments);
+  const summary = summarizePayments(payments);
+  const pendingApprovals =
+    visible?.refunds.filter(
+      (refund) =>
+        refund.currency === currency && refund.status === "pending_approval",
+    ).length || 0;
   const currencies = [
     ...new Set(visible?.transactions.map((payment) => payment.currency)),
   ];
@@ -85,6 +95,7 @@ export function PaymentDashboard() {
       <main id="main-content" className="payments-main">
         <div className="payments-heading">
           <div>
+            <span className="workspace-eyebrow">YOUR PAYMENT WORKSPACE</span>
             <h1>
               Welcome back
               {visible ? (
@@ -95,7 +106,9 @@ export function PaymentDashboard() {
                 "."
               )}
             </h1>
-            <p>Your payment activity, with answers when something looks off.</p>
+            <p>
+              Every payment in view. A clear next step when something looks off.
+            </p>
           </div>
           <div className="payments-actions">
             <button
@@ -115,7 +128,14 @@ export function PaymentDashboard() {
               <Download size={15} aria-hidden="true" />
               <span>Export</span>
             </button>
-            <Link className="green-button" href="/demo">
+            <Link
+              className="green-button"
+              href={
+                customerId
+                  ? `/demo?customer_id=${encodeURIComponent(customerId)}`
+                  : "/demo"
+              }
+            >
               Investigate <ArrowRight size={15} aria-hidden="true" />
             </Link>
           </div>
@@ -178,12 +198,53 @@ export function PaymentDashboard() {
         )}
         {visible && !loading && !error && (
           <>
+            <div
+              className="payment-metrics"
+              aria-label="Account summary metrics"
+            >
+              <div className="metric-card">
+                <span>Successful payment volume</span>
+                <strong>{money(summary.volume, currency)}</strong>
+                <small>{currency} · loaded account records</small>
+              </div>
+              <div className="metric-card">
+                <span>Payments</span>
+                <strong>
+                  {summary.count}
+                  <small className="metric-inline">total</small>
+                </strong>
+                <small>
+                  {summary.succeeded} succeeded · {summary.declined} declined
+                </small>
+              </div>
+              <Link className="metric-card actionable-metric" href="/approvals">
+                <span>
+                  Awaiting your review{" "}
+                  <ArrowRight size={14} aria-hidden="true" />
+                </span>
+                <strong>{pendingApprovals}</strong>
+                <small>Refunds always need human approval</small>
+              </Link>
+              <button
+                className="metric-card actionable-metric"
+                disabled={!matches.length}
+                onClick={() => openDetail(matches[0])}
+              >
+                <span>
+                  Matching charges <ArrowRight size={14} aria-hidden="true" />
+                </span>
+                <strong>
+                  {matches.length}
+                  <small className="metric-inline">to review</small>
+                </strong>
+                <small>
+                  {matches.length
+                    ? "Inspect the evidence before deciding"
+                    : "No matching charges in this account"}
+                </small>
+              </button>
+            </div>
             <div className="payment-grid">
-              <AccountSummary
-                visible={visible}
-                payments={payments}
-                currency={currency}
-              />
               <VolumeChart payments={payments} currency={currency} end={end} />
               <PaymentLedger
                 key={`${customerId}-${currency}`}

@@ -14,6 +14,7 @@ export function WorkspaceShell({
       <SiteHeader active={active} />
       <div className="workspace-body">
         <nav className="workspace-rail" aria-label="Workspace shortcuts">
+          <span className="rail-caption">WORKSPACE</span>
           {workspaceSections.map(({ id, href, label, icon: Icon }) => (
             <Link
               href={href}
@@ -23,8 +24,16 @@ export function WorkspaceShell({
               title={label}
             >
               <Icon size={20} aria-hidden="true" />
+              <span className="rail-link-label">{label}</span>
             </Link>
           ))}
+          <div className="rail-footer">
+            <span className="rail-demo-dot" />
+            <div>
+              <strong>Demo workspace</strong>
+              <small>Human-approved refunds</small>
+            </div>
+          </div>
         </nav>
         <div className="workspace-content">{children}</div>
       </div>
