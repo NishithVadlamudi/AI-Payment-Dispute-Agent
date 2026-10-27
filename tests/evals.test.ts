@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { datasetSchema, type EvalReport } from '../src/lib/evals/schemas';
+import { datasetSchema, evaluationSubsetSchema, type EvalReport } from '../src/lib/evals/schemas';
 import { evalBlockReason } from '../src/lib/evals/limits';
 import { providerFailure } from '../src/lib/agent/errors';
 import { SafetyLimitError } from '../src/lib/security/controls';
@@ -20,6 +20,29 @@ function pendingRun() {
   ] } as AgentRun;
 }
 describe('evaluation dataset and deterministic outcome scoring', () => {
+  it('keeps 16 new holdout prompts separate from the exercised development set', () => {
+    const holdout = evaluationSubsetSchema.parse(JSON.parse(readFileSync('evals/holdout.json', 'utf8')));
+    expect(holdout).toHaveLength(16);
+    expect(holdout.every((item) => !dataset.some((dev) => dev.id === item.id || dev.message === item.message))).toBe(true);
+    const seed = createSeedData();
+    for (const test of holdout) {
+      expect(seed.customers.some((row) => row.id === test.customer_id)).toBe(true);
+      if (['no_refund', 'request_blocked', 'decline_explained', 'pending_refund', 'already_refunded', 'refund_requested'].includes(test.expected_outcome.type)) {
+        for (const id of test.expected_outcome.transaction_ids) {
+          expect(seed.transactions.find((row) => row.id === id)?.customer_id).toBe(test.customer_id);
+        }
+      }
+    }
+  });
+  it('rejects plausible generic answers that never inspect the target payment', () => {
+    const normal = dataset.find((test) => test.expected_outcome.type === 'no_refund')!;
+    const run = { ...structuredClone(base), final_text: 'The payment succeeded.' };
+    expect(scoreCase(normal, run)).toContain('Expected successful evidence from the specified payment.');
+    run.tool_calls = [{ call_id: 'read', name: 'get_transaction', input: {}, result: { transaction: { id: normal.expected_outcome.transaction_ids[0] } }, failed: false, duration_ms: 1 }];
+    expect(scoreCase(normal, run)).toEqual([]);
+    run.tool_calls[0].failed = true;
+    expect(scoreCase(normal, run)).toContain('Expected successful evidence from the specified payment.');
+  });
   it('contains 40 distinct cases using valid demo customers and covering adversarial categories', () => {
     const customers = createSeedData().customers.map((row) => row.id);
     expect(dataset).toHaveLength(40);

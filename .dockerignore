@@ -9,6 +9,8 @@ coverage
 .ui-checks
 .demo-capture
 .vercel
+.neon
+evals/results
 **/__pycache__
 *.tsbuildinfo
 skills-lock.json

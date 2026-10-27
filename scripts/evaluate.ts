@@ -1,7 +1,7 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
-import { datasetSchema, type EvalReport, type EvalResult } from '../src/lib/evals/schemas';
+import { datasetSchema, evaluationSubsetSchema, type EvalReport, type EvalResult } from '../src/lib/evals/schemas';
 import { evalBlockReason } from '../src/lib/evals/limits';
 import { scoreCase, summarizeReport } from '../src/lib/evals/score';
 import { createEvalFixture } from '../src/lib/evals/fixtures';
@@ -16,11 +16,12 @@ import { startRun } from '../src/lib/observability/session';
 import { createAbuseControls } from '../src/lib/security/controls';
 import { GUARD_MODEL_LABEL, hasUnsafeOverride, injectionRefusal } from '../src/lib/security/injection';
 
-const { values } = parseArgs({ options: { limit: { type: 'string' }, case: { type: 'string' }, validate: { type: 'boolean' } } });
-const raw = await readFile('evals/cases.json', 'utf8');
-const allCases = datasetSchema.parse(JSON.parse(raw));
+const { values } = parseArgs({ options: { limit: { type: 'string' }, case: { type: 'string' }, split: { type: 'string', default: 'dev' }, validate: { type: 'boolean' } } });
+if (!['dev', 'holdout'].includes(values.split!)) throw new Error('Choose --split dev or --split holdout.');
+const raw = await readFile(values.split === 'holdout' ? 'evals/holdout.json' : 'evals/cases.json', 'utf8');
+const allCases = (values.split === 'holdout' ? evaluationSubsetSchema : datasetSchema).parse(JSON.parse(raw));
 if (values.validate) {
-  console.log(`Validated ${allCases.length} evaluation cases. No model accuracy was measured.`);
+  console.log(`Validated ${allCases.length} ${values.split} evaluation cases. No model accuracy was measured.`);
 } else {
   const limit = values.limit === undefined ? allCases.length : Number(values.limit);
   if (!Number.isInteger(limit) || limit < 1 || limit > allCases.length) throw new Error('Choose a limit between 1 and the dataset size.');
@@ -34,7 +35,7 @@ if (values.validate) {
   const provider = (process.env.AI_PROVIDER || 'gemini').trim().toLowerCase();
   const modelName = provider === 'openai' ? process.env.OPENAI_MODEL || 'gpt-5-mini' : process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
   let report: EvalReport = {
-    id: crypto.randomUUID(), suite_name: 'payment-disputes-v1', suite_sha256: createHash('sha256').update(raw).digest('hex'),
+    id: crypto.randomUUID(), suite_name: `payment-disputes-v2-${values.split}`, suite_sha256: createHash('sha256').update(raw).digest('hex'),
     mode: 'live', model: modelName, provider, status: 'running', dataset_size: allCases.length, total_cases: cases.length,
     passed: 0, infrastructure_errors: 0, average_latency_ms: null, average_cost_microusd: null, cost_coverage: 0,
     results: [], started_at: new Date().toISOString(), finished_at: null,
@@ -98,7 +99,7 @@ if (values.validate) {
   await evalStore.save(report);
   await writeFile(`evals/results/${report.id}.json`, JSON.stringify(report, null, 2) + '\n');
   await writeFile('evals/results/latest.json', JSON.stringify(report, null, 2) + '\n');
-  console.log(`Live end-to-end accuracy: ${report.passed}/${report.total_cases} (${(100 * report.passed / report.total_cases).toFixed(1)}%). Dataset: ${report.total_cases}/${report.dataset_size} cases selected.`);
+  console.log(`Selected-suite end-to-end pass rate: ${report.passed}/${report.total_cases} (${(100 * report.passed / report.total_cases).toFixed(1)}%). Split: ${values.split}; ${report.total_cases}/${report.dataset_size} cases selected. Status: ${report.status}. This is not completed-model-case accuracy.`);
   console.log(`Average attempted-case latency: ${report.average_latency_ms}ms. Average estimated cost: ${report.average_cost_microusd === null ? 'unknown' : '$' + (report.average_cost_microusd / 1_000_000).toFixed(6)} (known for ${report.cost_coverage}/${results.filter((result) => result.attempted).length} attempted cases; configured allowance rates).`);
   console.log(`Infrastructure errors: ${report.infrastructure_errors}. Report: evals/results/${report.id}.json`);
   process.exitCode = report.passed === report.total_cases ? 0 : 1;

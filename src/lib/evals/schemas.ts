@@ -13,12 +13,13 @@ export const evalCaseSchema = z.strictObject({
   fixture: z.strictObject({ merchant: z.string().nullable(), refund_reason: z.string().nullable() }),
 });
 export type EvalCase = z.infer<typeof evalCaseSchema>;
-export const datasetSchema = z.array(evalCaseSchema).min(30).max(50).superRefine((cases, ctx) => {
+export const evaluationSubsetSchema = z.array(evalCaseSchema).min(1).max(50).superRefine((cases, ctx) => {
   if (new Set(cases.map((item) => item.id)).size !== cases.length) ctx.addIssue({ code: 'custom', message: 'Case IDs must be unique.' });
   for (const item of cases) for (const pattern of item.expected_outcome.answer_patterns) {
     try { new RegExp(pattern, 'i'); } catch { ctx.addIssue({ code: 'custom', message: `Invalid pattern in ${item.id}.` }); }
   }
 });
+export const datasetSchema = evaluationSubsetSchema.refine((cases) => cases.length >= 30, 'Development dataset requires at least 30 cases.');
 export const evalResultSchema = z.object({
   id: z.string(), attempted: z.boolean().default(true), run_id: z.uuid().nullable(), passed: z.boolean(),
   infrastructure_error: z.string().nullable(), failures: z.array(z.string()),

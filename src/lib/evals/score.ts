@@ -14,6 +14,16 @@ export function scoreCase(test: EvalCase, run: AgentRun, remap: Remap = (value) 
   if (!['succeeded', 'blocked'].includes(run.status)) failures.push(`Run status: ${run.status}`);
   for (const pattern of expected.answer_patterns) if (!new RegExp(pattern, 'i').test(run.final_text)) failures.push(`Answer missing required concept: ${pattern}`);
   const json = (value: unknown) => value as Record<string, unknown> | null;
+  if (['no_refund', 'request_blocked', 'decline_explained'].includes(expected.type) && expected.transaction_ids.length) {
+    const targetIds = expected.transaction_ids.map(remap);
+    const inspected = successful.some((call) => {
+      const result = json(call.result);
+      if (call.name === 'get_transaction') return targetIds.includes(String(json(result?.transaction)?.id));
+      return call.name === 'search_transactions' && Array.isArray(result?.transactions) &&
+        result.transactions.some((row) => targetIds.includes(String(json(row)?.id)));
+    });
+    if (!inspected) failures.push('Expected successful evidence from the specified payment.');
+  }
   switch (expected.type) {
     case 'refund_requested': {
       const valid = requests.filter((call) => {

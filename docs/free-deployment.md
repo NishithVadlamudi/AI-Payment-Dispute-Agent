@@ -1,5 +1,7 @@
 # Free deployment: Render + Neon
 
+Latest verification (2026-10-27): the complete Linux AMD64 Docker image now builds and runs successfully against the existing Neon production database with migrations disabled, health/customer/payment access verified, and no AI or refund writes. Earlier image-build limitations below describe prior environments. The new CI workflow and partial version-2 development evaluation are documented in [the decision log](first-run-notes.md). A Render account is connected and its $0 service form is prepared; a public deployment is not yet verified. For this already-migrated database, use `AUTO_MIGRATE=false` and the direct `DATABASE_URL_UNPOOLED` connection. Preserve the current provider/model and budget configuration.
+
 No Vercel or hosted Supabase account is required. The repository includes a Render Blueprint that explicitly requests one **Free** Docker web service, plus an external Neon **Free** Postgres project that you create in your account. Do not select a paid plan or enable an upgrade to complete this setup. Provider availability and account requirements must be confirmed in their dashboards.
 
 [Deploy this repository on Render](https://render.com/deploy?repo=https%3A%2F%2Fgithub.com%2FNishithVadlamudi%2FAI-Payment-Dispute-Agent)
