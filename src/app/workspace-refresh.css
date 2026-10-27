@@ -3,15 +3,20 @@
   display: none;
 }
 .app-frame {
-  --bg: #f6f8fa;
+  --bg: #f5f5f7;
   --surface: #fff;
-  --soft: #f1f5f4;
-  --text: #172a29;
-  --muted: #697b7b;
-  --border: #e4eaea;
-  --pale: #eaf5ef;
-  --green: #167457;
-  --green-solid: #167457;
+  --soft: #f0f0f3;
+  --text: #1d1d1f;
+  --muted: #6e6e73;
+  --border: #e5e5ea;
+  --pale: #eaf3ff;
+  --green: #0066cc;
+  --green-solid: #0071e3;
+  --chart-pale: #b9d9fa;
+  --chrome: #fafafacc;
+  --panel-shadow: 0 2px 8px #1d1d1f04, 0 12px 32px #1d1d1f03;
+  font-family: -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
   width: 100%;
   max-width: none;
   min-height: 100dvh;
@@ -21,15 +26,18 @@
   border-radius: 0;
 }
 [data-theme="dark"] .app-frame {
-  --bg: #101719;
-  --surface: #182225;
-  --soft: #202e31;
-  --text: #e8f0ef;
-  --muted: #99aeaf;
-  --border: #29383c;
-  --pale: #1b382e;
-  --green: #8ed3b3;
-  --green-solid: #237c5c;
+  --bg: #101012;
+  --surface: #1c1c1e;
+  --soft: #2c2c2e;
+  --text: #f5f5f7;
+  --muted: #a1a1a6;
+  --border: #343438;
+  --pale: #142c49;
+  --green: #64adff;
+  --green-solid: #0071e3;
+  --chart-pale: #254f7b;
+  --chrome: #1c1c1edb;
+  --panel-shadow: 0 2px 8px #00000012, 0 12px 32px #0000000d;
 }
 .app-frame .site-header {
   max-width: none;
@@ -42,6 +50,8 @@
   top: 0;
   z-index: 30;
   gap: 28px;
+  background: var(--chrome);
+  backdrop-filter: blur(20px) saturate(160%);
 }
 .app-frame .site-brand {
   font-size: 25px;
@@ -84,7 +94,7 @@
   padding: 30px 14px 22px;
   border-radius: 0;
   align-items: stretch;
-  background: var(--surface);
+  background: var(--chrome);
   border-right: 1px solid var(--border);
   gap: 6px;
 }
@@ -171,9 +181,10 @@
 }
 .app-frame .soft-button,
 .app-frame .green-button {
-  border-radius: 8px;
+  border-radius: 999px;
   font-size: 12px;
   min-height: 40px;
+  padding-inline: 18px;
 }
 .app-frame .soft-button {
   border: 1px solid var(--border);
@@ -182,7 +193,7 @@
   background: var(--surface);
   padding: 12px 16px;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 18px;
   margin-bottom: 22px;
 }
 .app-frame .account-controls select {
@@ -201,7 +212,7 @@
   padding: 17px 20px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 18px;
   text-align: left;
   color: var(--text);
   display: flex;
@@ -250,8 +261,8 @@
 }
 .app-frame .surface-panel {
   border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 2px 3px #0a252803;
+  border-radius: 20px;
+  box-shadow: var(--panel-shadow);
 }
 .app-frame .payment-left-stack {
   grid-column: 2;
@@ -406,7 +417,7 @@
   width: 100%;
   max-width: 36px;
   background: var(--chart-pale);
-  border-radius: 5px 5px 0 0;
+  border-radius: 6px 6px 0 0;
   transition: background-color 140ms ease;
   pointer-events: none;
 }
@@ -496,7 +507,8 @@
   font-size: 10px;
 }
 .app-frame .payment-status.succeeded {
-  background: var(--pale);
+  background: #e8f6ed;
+  color: #217344;
 }
 .rows-control {
   display: flex;
@@ -822,4 +834,36 @@
   .app-frame .payment-footer {
     font-size: 10px;
   }
+}
+
+/* Blue indicates an action; payment outcomes retain their semantic colors. */
+.app-frame .green-button:hover:not(:disabled) { background: #0077ed; }
+.app-frame .green-button:active:not(:disabled) { background: #0062c4; }
+.app-frame .soft-button:hover:not(:disabled) { background: var(--soft); }
+.app-frame .payment-status.succeeded::before { background: #248a4b; }
+.app-frame .payment-status.pending { color: #865600; background: #fff4d6; }
+.app-frame .payment-status.declined { color: #b52d29; background: #ffebe9; }
+.app-frame .rail-demo-dot { background: #248a4b; }
+.app-frame .agent-card { background: linear-gradient(150deg, var(--pale), var(--surface) 52%); }
+.app-frame .merchant-initials { border-radius: 11px; }
+.app-frame .payment-status { border-radius: 999px; }
+.app-frame .chart-period { border-radius: 10px; }
+.app-frame .chart-period button { border-radius: 7px; }
+.app-frame .metric-card { box-shadow: var(--panel-shadow); }
+.app-frame :is(button, a, select, input, textarea):focus-visible {
+  outline: 3px solid var(--green);
+  outline-offset: 3px;
+}
+[data-theme="dark"] .app-frame .payment-status.succeeded { color: #82dba2; background: #193627; }
+[data-theme="dark"] .app-frame .payment-status.pending { color: #f5cd70; background: #3c3018; }
+[data-theme="dark"] .app-frame .payment-status.declined { color: #ffaaa4; background: #412523; }
+@media (prefers-reduced-transparency: reduce) {
+  .app-frame .site-header, .app-frame .workspace-rail { background: var(--surface); backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .app-frame { --border: #86868b; --muted: #515154; }
+  [data-theme="dark"] .app-frame { --border: #86868b; --muted: #c7c7cc; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .app-frame *, .app-frame *::before, .app-frame *::after { transition: none !important; animation: none !important; }
 }
