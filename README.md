@@ -2,6 +2,8 @@
 
 Describe a payment problem, watch an AI agent investigate fictional transactions, and review its proposed fix. Read-only tools run automatically; refunds enter a human approval queue. Built with **Next.js, TypeScript, Tailwind, Postgres, PostgREST, Zod, Vitest, and Gemini native tool use**, with an explicit optional OpenAI adapter.
 
+**[Live demo](https://resolve-payments.onrender.com/payments)** · [CI](https://github.com/NishithVadlamudi/AI-Payment-Dispute-Agent/actions/workflows/ci.yml) · [Evaluation protocol](evals/README.md)
+
 No real banks or payment processors are connected. The public reviewer role is fictional, not authenticated staff access.
 
 ![Recorded payment investigation, evidence, human review and observability](public/demo.gif)
@@ -10,11 +12,11 @@ No real banks or payment processors are connected. The public reviewer role is f
 
 ![Responsive Resolve payment workspace](public/workspace-desktop.png)
 
-The new green workspace is implemented at `/payments`, including responsive tables, dark mode, customer-scoped payment evidence and unsent investigation drafts. See [responsive design and iOS installation](docs/responsive-workspace.md) for architecture, browser coverage and limits. The GIF above records the earlier visual skin.
+The full-width Apple-inspired workspace is implemented at `/payments`, including responsive tables, dark mode, customer-scoped payment evidence and unsent investigation drafts. See [responsive design and iOS installation](docs/responsive-workspace.md) for architecture, browser coverage and limits. The GIF and screenshot above record an earlier visual skin; the live demo has the current neutral/blue theme.
 
 ## Free hosting
 
-The deployment target is **Render Free + Neon Free**, with no Vercel or Supabase hosting required. [Deployment setup](docs/free-deployment.md) includes the one-service Blueprint, private environment settings, automated migrations, free-plan limits and verification status. A live deployment still requires your provider accounts.
+The deployment target is **Render Free + Neon Free**, with no Vercel or Supabase hosting required. [Deployment setup](docs/free-deployment.md) includes the one-service Blueprint, private environment settings, automated migrations, free-plan limits and verification status. The public demo is live at [resolve-payments.onrender.com](https://resolve-payments.onrender.com/payments). Its first request after inactivity may take 50 seconds or longer; data persists in Neon. HTTPS health, customer/payment access and the matching-payment detail flow were verified on October 27, 2026.
 
 ## Try the workflow
 
@@ -49,7 +51,7 @@ flowchart LR
   UI[Customer picker and chat] --> API[Next.js API: validate, scope, throttle]
   API --> LOOP[Agent loop: at most 8 turns]
   LOOP --> BUDGET[Atomic daily allocation]
-  BUDGET --> DB[(Supabase Postgres)]
+  BUDGET --> DB[(Neon Postgres via private PostgREST)]
   LOOP <-->|Native tool calls and results| MODEL[Gemini or optional OpenAI]
   LOOP --> TOOLS[Zod-validated server tools]
   TOOLS -->|Scoped reads and pending refund requests| DB
@@ -107,7 +109,7 @@ npm run eval:validate # Validate the 40-case dataset without model calls
 npm run eval          # Live evaluation; consumes quota and daily allowance
 ```
 
-The current checks include **128 unit/API/UI tests** and **29 database integration tests**, including concurrent approvals, uniqueness constraints, refund limits, customer scope, injection controls, the agent loop and persistent tracing. Responsive browser checks cover five pages at seven viewport sizes (320–1920px, including landscape) in light and dark modes. Safari/WebKit device verification remains outstanding; see [the verification notes](docs/responsive-workspace.md).
+The current checks include **131 unit/API/UI tests** and **29 database integration tests**, including concurrent approvals, uniqueness constraints, refund limits, customer scope, injection controls, the agent loop and persistent tracing. Responsive browser checks cover five pages at seven viewport sizes (320–1920px, including landscape) in light and dark modes. Safari/WebKit device verification remains outstanding; see [the verification notes](docs/responsive-workspace.md).
 
 The recorded full live evaluation is **partial: 12/40 end-to-end passes and 28 infrastructure errors** (15 Gemini quota responses, then 13 daily-allowance blocks). The passes include four native duplicate investigations and eight deterministic guard refusals. **Full model accuracy remains unmeasured.** Missing cost is unknown, not zero. [Measured results and limitations](docs/evaluation-results.md).
 
