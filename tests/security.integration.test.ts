@@ -5,6 +5,8 @@ import { createClient } from '@supabase/supabase-js';
 import { createStore } from '../src/lib/db/queries';
 import { executeTool } from '../src/lib/tools/execute';
 import { demoId } from '../src/lib/demo/seed-data';
+import { createAbuseControls } from '../src/lib/security/controls';
+import type { ModelClient } from '../src/lib/agent/types';
 
 if (existsSync('.env.local')) process.loadEnvFile('.env.local');
 const db = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });
@@ -25,6 +27,53 @@ afterAll(async () => {
 });
 
 describe('shared Postgres security controls', () => {
+  it('reuses unused allowance across ten completed turns with real SQL settlement',async()=>{
+    const name=scope();
+    const keys=['AI_PROVIDER','AI_BUDGET_PROVIDER','AI_BUDGET_MODEL','AI_DAILY_BUDGET_MICROUSD','AI_INPUT_MICROUSD_PER_TOKEN','AI_OUTPUT_MICROUSD_PER_TOKEN'];
+    const saved=keys.map(k=>process.env[k]);
+    Object.assign(process.env,{AI_PROVIDER:'gemini',AI_BUDGET_PROVIDER:'gemini',AI_BUDGET_MODEL:'gemini-3.5-flash-lite',AI_DAILY_BUDGET_MICROUSD:'200000',AI_INPUT_MICROUSD_PER_TOKEN:'5',AI_OUTPUT_MICROUSD_PER_TOKEN:'20'});
+    try{
+      // Only redirect the fixed global bucket for this synthetic integration fixture.
+      const scoped=new Proxy(db,{get(target,property,receiver){if(property==='rpc')return (fn:string,args:Record<string,unknown>={})=>target.rpc(fn,fn==='reserve_ai_budget'?{...args,p_scope:name}:args);return Reflect.get(target,property,receiver);}});
+      const model:ModelClient={model:'gemini-3.5-flash-lite',async *turn(){yield {type:'completed',output:[],usage:{inputTokens:100,outputTokens:20}};}};
+      let gross=0;
+      const protectedModel=createAbuseControls(scoped).protect(model,{onReservation:async(amount)=>{gross+=amount;}});
+      for(let i=0;i<10;i++)for await(const event of protectedModel.turn({instructions:'Investigate only.',input:[],tools:[]}))expect(event.type).toBe('completed');
+      const bucket=await db.from('ai_daily_budgets').select('*').eq('scope',name).single();
+      expect(gross).toBeGreaterThan(200000);
+      expect(Number(bucket.data!.allocated_microusd)).toBe(9000);
+      expect(Number(bucket.data!.cap_microusd)).toBe(200000);
+    }finally{keys.forEach((k,i)=>{if(saved[i]===undefined)delete process.env[k];else process.env[k]=saved[i];});}
+  });
+  it('settles concurrently once and preserves reservation idempotency and the daily cap',async()=>{
+    const name=scope(),id=randomUUID();expect(await reserve(name,60,100,id)).toBe(true);
+    const results=await Promise.all(Array.from({length:12},()=>db.rpc('settle_ai_budget',{p_id:id,p_actual_microusd:10})));
+    expect(results.every(r=>!r.error&&r.data===true)).toBe(true);
+    expect((await db.rpc('settle_ai_budget',{p_id:id,p_actual_microusd:0})).data).toBe(false);
+    expect(await reserve(name,60,100,id)).toBe(true);
+    const entries=await db.from('ai_daily_budgets').select('*').eq('scope',name).single();
+    expect(Number(entries.data!.allocated_microusd)).toBe(10);expect(Number(entries.data!.cap_microusd)).toBe(100);
+    const attempts=await Promise.all(Array.from({length:20},()=>reserve(name,10,100)));
+    expect(attempts.filter(Boolean)).toHaveLength(9);
+  });
+  it('rejects missing, excessive and anonymous settlements without releasing allowance',async()=>{
+    const name=scope(),id=randomUUID();await reserve(name,60,100,id);
+    expect((await db.rpc('settle_ai_budget',{p_id:id,p_actual_microusd:61})).data).toBe(false);
+    expect((await db.rpc('settle_ai_budget',{p_id:randomUUID(),p_actual_microusd:0})).data).toBe(false);
+    const anon=createClient(process.env.SUPABASE_URL!,process.env.SUPABASE_ANON_KEY!,{auth:{persistSession:false}});
+    expect((await anon.rpc('settle_ai_budget',{p_id:id,p_actual_microusd:0})).error).not.toBeNull();
+    const entry=await db.from('ai_daily_budgets').select('*').eq('scope',name).single();expect(Number(entry.data!.allocated_microusd)).toBe(60);
+  });
+  it('settles against the original UTC day without crediting today',async()=>{
+    const name=scope(),id=randomUUID(),day=new Date(Date.now()-86400000).toISOString().slice(0,10);
+    expect((await db.from('ai_daily_budgets').insert({scope:name,day,cap_microusd:100,allocated_microusd:60})).error).toBeNull();
+    expect((await db.from('ai_budget_reservations').insert({id,scope:name,day,amount_microusd:60})).error).toBeNull();
+    expect(await reserve(name,20,100)).toBe(true);
+    expect((await db.rpc('settle_ai_budget',{p_id:id,p_actual_microusd:10})).data).toBe(true);
+    const rows=await db.from('ai_daily_budgets').select('*').eq('scope',name);
+    expect(Number(rows.data!.find(r=>r.day===day)!.allocated_microusd)).toBe(10);
+    expect(Number(rows.data!.find(r=>r.day!==day)!.allocated_microusd)).toBe(20);
+  });
   it('admits only ten concurrent requests for the same IP bucket across clients', async () => {
     const key = bucket();
     const other = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!, { auth: { persistSession: false } });

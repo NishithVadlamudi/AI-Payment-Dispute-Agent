@@ -3,6 +3,8 @@ import { z } from "zod";
 import type { DatabaseClient } from "../db/client";
 import type { ModelClient, ModelRequest } from "../agent/types";
 import { MAX_MODEL_CONTEXT_BYTES, MAX_OUTPUT_TOKENS } from "./limits";
+import { usageSchema } from "../observability/schemas";
+import type { ModelEvent } from "../agent/types";
 
 export class SafetyLimitError extends Error {
   constructor(
@@ -99,8 +101,9 @@ export function createAbuseControls(db: DatabaseClient) {
           // Reserve the full output allowance, even if a call fails/cancels.
           const amount =
             (bytes + 4096) * inputRate + MAX_OUTPUT_TOKENS * outputRate;
+          const reservationId = crypto.randomUUID();
           const { data, error } = await db.rpc("reserve_ai_budget", {
-            p_id: crypto.randomUUID(),
+            p_id: reservationId,
             p_amount_microusd: amount,
             p_cap_microusd: cap,
             p_scope: "global",
@@ -116,7 +119,26 @@ export function createAbuseControls(db: DatabaseClient) {
             );
           await observer?.onReservation(amount);
           request.signal?.throwIfAborted();
-          yield* model.turn(request);
+          let completion: Extract<ModelEvent, { type: 'completed' }> | undefined;
+          let completions = 0;
+          for await (const event of model.turn(request)) {
+            if (event.type === 'completed') { completion = event; completions++; }
+            else yield event;
+          }
+          request.signal?.throwIfAborted();
+          // Reconcile only a normally exhausted stream with one validated usage
+          // record. Errors, cancellations and missing/ambiguous usage retain the
+          // full reservation. Gemini usage includes its reasoning output tokens.
+          const usage = usageSchema.safeParse(completion?.usage);
+          if (completions === 1 && usage.success && usage.data.inputTokens > 0) {
+            const actual = usage.data.inputTokens * inputRate + usage.data.outputTokens * outputRate;
+            if (Number.isSafeInteger(actual) && actual <= amount) {
+              const settled = await db.rpc('settle_ai_budget', { p_id: reservationId, p_actual_microusd: actual });
+              if (settled.error || settled.data !== true)
+                throw new SafetyLimitError('The demo’s budget settlement could not be confirmed. Please try again later.');
+            }
+          }
+          if (completion) yield completion;
         },
       };
     },

@@ -42,6 +42,8 @@ Validation checks structure, unique IDs and regex syntax. Tests also check dev/h
 4. Preserve report IDs and hashes. Stop on provider-wide or daily-budget limits; do not retry until allowance is available. Fixture cleanup failures stop the run to preserve evidence.
 5. Report successful cases, failed cases, skipped cases and infrastructure failures separately. Show attempted-case latency and known-cost coverage; unknown cost is not zero. Give the selected-suite end-to-end pass rate with its denominator and completion status, not a model-accuracy headline.
 
+For a later allowance period, `--remaining-from evals/results/<prior-report>.json` selects only infrastructure-blocked, skipped or missing cases. For several batches, supply **all** compatible prior report paths separated by commas. Completed scoring failures are retained and excluded from retry selection, just like completed passes. Each continuation saves a new batch report; this is not an automatic merged full-suite result. Keep prompt/scorer/fixture hashes unchanged across a measurement campaign, and maintain an auditable case ledger before reporting complete-suite results. Do not use new Neon branches to reset the same-day allowance; see `docs/completion-checklist.md`.
+
 The existing partial report in `docs/evaluation-results.md` remains unchanged. Version-2 scoring adds a successful target-payment evidence requirement for receipt, blocked-request and decline cases; its scores cannot be compared directly with the earlier scoring version as an improvement in the model.
 
 ## Current status

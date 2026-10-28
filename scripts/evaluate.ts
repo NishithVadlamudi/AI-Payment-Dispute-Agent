@@ -1,7 +1,8 @@
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
-import { datasetSchema, evaluationSubsetSchema, type EvalReport, type EvalResult } from '../src/lib/evals/schemas';
+import { datasetSchema, evaluationSubsetSchema, evalReportSchema, type EvalReport, type EvalResult } from '../src/lib/evals/schemas';
+import { unfinishedCases } from '../src/lib/evals/continuation';
 import { evalBlockReason } from '../src/lib/evals/limits';
 import { scoreCase, summarizeReport } from '../src/lib/evals/score';
 import { createEvalFixture } from '../src/lib/evals/fixtures';
@@ -16,7 +17,7 @@ import { startRun } from '../src/lib/observability/session';
 import { createAbuseControls } from '../src/lib/security/controls';
 import { GUARD_MODEL_LABEL, hasUnsafeOverride, injectionRefusal } from '../src/lib/security/injection';
 
-const { values } = parseArgs({ options: { limit: { type: 'string' }, case: { type: 'string' }, split: { type: 'string', default: 'dev' }, validate: { type: 'boolean' } } });
+const { values } = parseArgs({ options: { limit: { type: 'string' }, case: { type: 'string' }, 'remaining-from': { type: 'string' }, split: { type: 'string', default: 'dev' }, validate: { type: 'boolean' } } });
 if (!['dev', 'holdout'].includes(values.split!)) throw new Error('Choose --split dev or --split holdout.');
 const raw = await readFile(values.split === 'holdout' ? 'evals/holdout.json' : 'evals/cases.json', 'utf8');
 const allCases = (values.split === 'holdout' ? evaluationSubsetSchema : datasetSchema).parse(JSON.parse(raw));
@@ -25,15 +26,27 @@ if (values.validate) {
 } else {
   const limit = values.limit === undefined ? allCases.length : Number(values.limit);
   if (!Number.isInteger(limit) || limit < 1 || limit > allCases.length) throw new Error('Choose a limit between 1 and the dataset size.');
-  const cases = (values.case ? allCases.filter((item) => item.id === values.case) : allCases).slice(0, limit);
+  const provider = (process.env.AI_PROVIDER || 'gemini').trim().toLowerCase();
+  const modelName = provider === 'openai' ? process.env.OPENAI_MODEL || 'gpt-5-mini' : process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
+  const suite = `payment-disputes-v2-${values.split}`;
+  const hash = createHash('sha256').update(raw).digest('hex');
+  let eligible = allCases;
+  if (values['remaining-from']) {
+    for (const path of values['remaining-from'].split(',')) {
+      const previous = evalReportSchema.parse(JSON.parse(await readFile(path, 'utf8')));
+      const unfinished = new Set(unfinishedCases(allCases, previous, { suite, hash, provider, model: modelName }).map((item) => item.id));
+      eligible = eligible.filter((item) => unfinished.has(item.id));
+      console.log(`Excluding completed outcomes from ${previous.id}. Previous scoring failures remain failures.`);
+    }
+    console.log('Freeze prompt/scorer/fixtures across batches; this report is a separate batch, not a merged accuracy claim.');
+  }
+  const cases = (values.case ? eligible.filter((item) => item.id === values.case) : eligible).slice(0, limit);
   if (!cases.length) throw new Error('No matching case.');
   const db = createDatabaseClient();
   const evalStore = createEvalStore(db);
   const store = createStore(db);
   const traceStore = createTraceStore(db);
   const controls = createAbuseControls(db);
-  const provider = (process.env.AI_PROVIDER || 'gemini').trim().toLowerCase();
-  const modelName = provider === 'openai' ? process.env.OPENAI_MODEL || 'gpt-5-mini' : process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite';
   let report: EvalReport = {
     id: crypto.randomUUID(), suite_name: `payment-disputes-v2-${values.split}`, suite_sha256: createHash('sha256').update(raw).digest('hex'),
     mode: 'live', model: modelName, provider, status: 'running', dataset_size: allCases.length, total_cases: cases.length,

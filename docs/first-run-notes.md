@@ -77,3 +77,46 @@ Entries record observed evidence. Infrastructure failures are not model-accuracy
 **Measured result.** Independent HTTPS requests returned 200 for health, customers, scoped payments and the refund queue. Health reports `ok` and mock payments; 20 customers and 15 Maya payments loaded, with matching customer ownership and integer-cent amounts. Browser verification loaded the dashboard and opened the Northstar $84.99 payment detail with both matching references, refund history and the warning that matching records are not proof. A separate production Neon read reported 20 customers, 300 transactions and zero mock executions. No model request, approval, migration or seed was executed during these checks. Sanitized API evidence is saved in this chat's `outputs/render-verification.json`.
 
 **CI and limits.** GitHub Actions run `40561931803` passed on the deployed commit: 131 tests, type check, 40 dev/16 holdout validation, default production build and migration bundle. Render Free may sleep and show a cold start of 50 seconds or more. The live AI provider was not retested on the public host; the existing partial evaluation reports remain the source of model evidence, and no holdout accuracy is claimed. Current README images predate the final palette; the live app is the current interface. Recorded/narrated media and career deliverables remain separate unfinished work.
+
+## 2026-10-27 — Media script and storyboard prepared
+
+**Problem.** Prepare portfolio media without representing the partial AI evaluation as completed accuracy or implying that the model approves refunds.
+
+**Approach.** Read the requested upstream `brag-slim` skill directly without installing it. Drafted a 158-word, nine-paragraph walkthrough in `docs/media/walkthrough-narration.txt`, in problem → demo → architecture → measured results order. Prepared a 20-second, 120 BPM/40-beat launch storyboard and explicit capture/finishing rules. Planned actual read-only dashboard/detail/unsent-draft usage, with no model or refund writes; any future recorded response must be visibly labelled.
+
+**Verified prerequisites and limits.** ffmpeg, ffprobe, Pillow, numpy and system Chrome are available. The checked Python environment lacks Playwright and Whisper; standard Node CDP can avoid a browser-library installation, while word-timestamp transcription still needs an approved local Whisper setup. No new packages, paid calls, audio generation, commits or pushes were made. Narration has not been supplied; no final GIF, poster, narrated MP4 or launch MP4 is claimed. Source media links remain unchanged until new assets exist and pass visual/audio QA.
+
+
+## 2026-10-27 — Approved local Whisper setup
+
+**Problem.** Narration alignment and final-audio checks require local word timestamps; Whisper was missing.
+
+**Fix.** After explicit user approval, installed `openai-whisper` 20250625 into the isolated sibling `work/media-whisper-env`, leaving application dependencies and system Python unchanged. Cached the `base.en` model under `work/media-whisper-models`; used the system trusted CA bundle for its download. No paid transcription service was called.
+
+**Measured result.** `pip check` found no broken requirements. Whisper imported and loaded `base.en` successfully on CPU with PyTorch 2.14.1; inspected its transcription signature to confirm the word-timestamp option. Saved the environment package versions in `work/media-whisper-requirements.txt`. No narration file is available yet, so transcription quality, final timing and audio-gap verification remain unmeasured. No commit or push was made.
+
+## 2026-10-27 — Finish evaluation before recording
+
+**Problem.** The user requires the end product and evaluation to be complete before final recording. Rerunning all cases wastes allowance, and recreating a deleted evaluation branch could silently provide a fresh budget counter despite earlier same-day allocations.
+
+**Evidence.** Production's global daily allocation is 437,555 microUSD; the preserved isolated baseline allocated 4,463,770. Combined 4,901,325 of the unchanged 5,000,000 allowance is accounted for on October 27 UTC. The next turn was blocked. No additional model call was made; the next UTC-day reset is October 27 at 8 PM America/New_York. Allocations are conservative accounting allowances, not an assertion of provider charges.
+
+**Fix.** Added `--remaining-from` with comma-separated compatible report paths. It excludes completed passes and completed scoring failures, retrying only missing/skipped/infrastructure cases. Rejects incompatible split/hash/model/provider and duplicate/unknown report case IDs. Each continuation writes a separate batch report; aggregate outcome claims still require an auditable ledger and matching prompt/scorer/fixture hashes. Added regression tests for failed-case preservation and report compatibility. Added the completion checklist and a holdout label review sheet; labels remain author-reviewed rather than independently human-validated.
+
+**Measured result and continuation.** All 133 key-free tests, type checking and both split validations passed. Final targeted continuation tests and type checking were repeated after multi-report support. No spending limits or production data were changed. The user explicitly authorized a daily 8:05 PM America/New_York continuation; automation `finish-payment-agent-evaluation` was created with unchanged-budget, persistent-isolation and no-cherry-picking instructions. Final recording stays paused. No new commit/push was made, and the deployed app remains on its verified revision.
+
+## 2026-10-28 — First scheduled continuation completes 14 more development cases
+
+**Problem.** Tenable measurement required continuing unfinished cases after the allowance reset without rerunning prior passes or resetting budget state.
+
+**Fix.** Confirmed zero current-day production allocations and created persistent isolated branch `br-summer-bonus-b5us8mp6`. Ran the unchanged model/scorer/fixtures against only the original baseline's 24 unfinished cases using `--remaining-from`. Saved code/dataset hashes and retained the branch for subsequent days.
+
+**Measured result.** New report `67969605-12a7-4927-a2fb-b36003c672f1`: 14 model-backed passes, one daily-budget-blocked case and nine skipped cases. Independently verified the persisted report and 4,868,505/5,000,000 microUSD daily allocation. No further model calls after the block. Combined compatible-case ledger: 30/40 development cases completed, comprising 22 model-backed passes and eight guard passes; zero completed scoring failures, ten unfinished. This is not holdout accuracy. Fixture cleanup confirmed zero evaluation customers/transactions and zero mock executions. Detailed evidence and next-batch instructions are in `docs/evaluation-continuation-20261028.md`. No commit/push, dependency install, production reset or final recording occurred. The next daily continuation remains scheduled; holdout/product/media gates remain open.
+
+## 2026-10-28 — Reconcile unused model-turn reservations
+
+**Problem and cause.** Both recent evaluation runs stopped at the application's daily allowance, not a new Gemini quota error. The server reserved a worst-case amount before each turn and never released unused allowance after known successful usage. This made the safety guard consume far more allocation than its reported usage estimates. Vidcite's local limiter defaults to off; it does not use this per-turn reservation mechanism.
+
+**Fix.** With the user's explicit approval, added versioned migration `0005_budget_settlement.sql` and application settlement after normal stream exhaustion. A single valid completion with positive input usage can settle to the same configured token-rate estimate, provided it fits within the original reservation. Gemini already includes reasoning tokens in output usage. Errors, cancellation, invalid/missing usage and ambiguous completion retain the reservation. Settlement errors fail closed. SQL keeps original amounts immutable, serializes on the same day bucket lock as reservations, handles retry/conflict safely, and credits only the original reservation day. Anonymous callers cannot settle. No cap, price rate, provider, model or prompt was changed; no old reservations were retroactively credited.
+
+**Validation.** Added unit coverage for success, failed/cancelled streams after usage, invalid/zero/excessive/duplicate usage, and settlement storage failure. Added real Neon tests for repeated/concurrent settlement, conflicting replays, reserve idempotency after settlement, cap enforcement, unauthorized calls and original-day credit. Type checking and the production Webpack build pass; all 137 key-free tests passed. Final isolated-Neon integration run passed all 33 tests. A synthetic-turn/real-SQL check completed ten turns within an unchanged 200,000-microUSD test cap, retaining 9,000 microUSD after settlement; unreconciled reservations would have blocked the second turn. This is accounting behavior, not a live-model quality or billing result. No live Gemini requests were made and production was not migrated or deployed. This accounting change affects allocation/coverage and must be identified in subsequent evaluation campaign provenance; it is not evidence of improved model accuracy.

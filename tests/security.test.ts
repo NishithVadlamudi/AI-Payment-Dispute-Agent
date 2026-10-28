@@ -69,6 +69,40 @@ describe('untrusted input and scoped tools', () => {
 });
 
 describe('durable abuse and conservative daily budget controls', () => {
+  it('settles reported usage once, using the reservation ID and unchanged configured rates', async () => {
+    const {rpc,controls}=fixture();
+    const model:ModelClient={model:'gemini-3.5-flash-lite',async *turn(){yield {type:'completed',output:[],usage:{inputTokens:100,outputTokens:20}};}};
+    await collect(controls.protect(model).turn(modelRequest));
+    expect(rpc).toHaveBeenCalledTimes(2);
+    expect(rpc.mock.calls[0][1].p_cap_microusd).toBe(5_000_000);
+    expect(rpc.mock.calls[1]).toEqual(['settle_ai_budget',{p_id:rpc.mock.calls[0][1].p_id,p_actual_microusd:900}]);
+  });
+  it('retains reservations when a completed event is followed by failure or cancellation', async () => {
+    for(const abort of [false,true]){
+      const {rpc,controls}=fixture();const controller=new AbortController();
+      const model:ModelClient={model:'gemini-3.5-flash-lite',async *turn(){
+        yield {type:'completed',output:[],usage:{inputTokens:100,outputTokens:20}};
+        if(abort)controller.abort();else throw Error('provider stream failed after metadata');
+      }};
+      await expect(collect(controls.protect(model).turn({...modelRequest,signal:controller.signal}))).rejects.toThrow();
+      expect(rpc).toHaveBeenCalledTimes(1);
+    }
+  });
+  it('retains reservations for zero, invalid, excessive or ambiguous usage', async () => {
+    for(const usage of [{inputTokens:0,outputTokens:0},{inputTokens:NaN,outputTokens:1},{inputTokens:1,outputTokens:1_000_000}]){
+      const {rpc,controls}=fixture();
+      const model:ModelClient={model:'gemini-3.5-flash-lite',async *turn(){yield {type:'completed',output:[],usage};}};
+      await collect(controls.protect(model).turn(modelRequest));expect(rpc).toHaveBeenCalledTimes(1);
+    }
+    const {rpc,controls}=fixture();
+    const model:ModelClient={model:'gemini-3.5-flash-lite',async *turn(){for(let i=0;i<2;i++)yield {type:'completed',output:[],usage:{inputTokens:1,outputTokens:1}};}};
+    await collect(controls.protect(model).turn(modelRequest));expect(rpc).toHaveBeenCalledTimes(1);
+  });
+  it('fails closed if settlement cannot be confirmed',async()=>{
+    const {rpc,controls}=fixture();rpc.mockResolvedValueOnce({data:true,error:null}).mockResolvedValueOnce({data:null,error:{message:'private'}});
+    const model:ModelClient={model:'gemini-3.5-flash-lite',async *turn(){yield {type:'completed',output:[],usage:{inputTokens:100,outputTokens:20}};}};
+    await expect(collect(controls.protect(model).turn(modelRequest))).rejects.toThrow('settlement');
+  });
   it('charges the full configured allowance before the provider is invoked', async () => {
     vi.stubEnv('AI_PROVIDER', 'gemini');
     const { rpc, model, controls } = fixture();
