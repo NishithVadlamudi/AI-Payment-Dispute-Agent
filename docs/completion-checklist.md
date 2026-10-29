@@ -27,7 +27,7 @@ Use one persistent isolated evaluation branch after reset and retain its allowan
 - [x] Prior 131-test CI pass and six requested responsive/theme checks.
 - [x] New continuation tests: 133 key-free tests pass; type checking and both dataset validations pass.
 - [ ] Validate continuation changes on final CI after approved commit/push; local changes are not automatically deployed.
-- [ ] Verify a normal public chat investigation within available allowance, with the selected customer, relevant evidence and truthful error handling. Do not create a production refund merely for the recording.
+- [x] Public read-only Gemini investigation succeeded on deployed diagnostic revision `6fbbee4`: run `bda46377-4ed1-40a4-856a-52e0f2969590`, correct $129.00 decline explanation and tools, successful completion, unchanged refund counts. Independent production Neon evidence in `provider-debugging.md`; earlier failures remain preserved.
 - [ ] Keep current known limitations visible: public fictional reviewer access, partial account totals, shared proxy bucket, free-host cold starts and development-tool advisories.
 - [ ] Update README/result tables and user-facing evaluation material from final measurements. No invented holdout before/after baseline; if none exists, say so.
 
@@ -53,4 +53,4 @@ The user authorized a daily 8:05 PM America/New_York continuation in this chat. 
 - [x] Handle empty, symbol-only and numeric-only final output as an explicit incomplete-investigation error without successful completion or automatic retry. Five regression cases added; 146 key-free tests and type checking pass. This narrow Unicode-letter check does not validate semantic correctness. Preserve the genuine failed answer.
 - [x] Fresh three-case smoke validation: report `7b676db5-759a-4c32-8bc8-fb7c1472ecef`, three automated/manual passes, no infrastructure errors or retries. Preserve the earlier 5/6 result. See `output-handling-validation-results.md`.
 - [x] Explicit commit/push/deploy approval received. Code `2512707` pushed; CI 40885251567 passed and Render deploy `dep-dbhku588v5cc738otc50` is live. Production migration 0006 applied without reset; dashboard/customer/payment access verified. See `rollout-2512707.md`.
-- [ ] Complete public read-only Gemini investigation after a later allowance boundary. First deployed smoke reached correct tools but provider became unavailable before an answer; preserved run `f9e1ad78-617a-4e8e-b47f-803864be0571`, no retries. Do not rerun completed evaluation cases. Final recording remains gated on this product check.
+- [x] Complete public investigation after explicit user-authorized diagnostic deployment/request: run `bda46377-4ed1-40a4-856a-52e0f2969590` succeeded. Original failures remain unchanged. Do not rerun completed evaluation cases. Product verification gate is satisfied; final media and narration remain outstanding.
