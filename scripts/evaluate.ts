@@ -1,3 +1,4 @@
+import { setTimeout as wait } from 'node:timers/promises';
 import { readFile, mkdir, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { parseArgs } from 'node:util';
@@ -18,7 +19,7 @@ import { createAbuseControls } from '../src/lib/security/controls';
 import { GUARD_MODEL_LABEL, hasUnsafeOverride, injectionRefusal } from '../src/lib/security/injection';
 
 const { values } = parseArgs({ options: { limit: { type: 'string' }, case: { type: 'string' }, 'remaining-from': { type: 'string' }, split: { type: 'string', default: 'dev' }, validate: { type: 'boolean' } } });
-if (!['dev', 'holdout', 'regression', 'validation', 'release', 'qualification'].includes(values.split!)) throw new Error('Choose --split dev, --split holdout, --split regression, --split validation, --split release or --split qualification.');
+if (!['dev', 'holdout', 'regression', 'validation', 'release', 'qualification', 'evidence'].includes(values.split!)) throw new Error('Choose --split dev, --split holdout, --split regression, --split validation, --split release or --split qualification or --split evidence.');
 const raw = await readFile(values.split === 'dev' ? 'evals/cases.json' : `evals/${values.split}.json`, 'utf8');
 const allCases = (values.split === 'dev' ? datasetSchema : evaluationSubsetSchema).parse(JSON.parse(raw));
 if (values.validate) {
@@ -57,6 +58,7 @@ if (values.validate) {
   const results: EvalResult[] = [];
   await mkdir('evals/results', { recursive: true });
   let blockedModelReason: string | null = null;
+  let lastModelStart = -Infinity;
   for (const test of cases) {
     const start = performance.now();
     let fixture: Awaited<ReturnType<typeof createEvalFixture>> | undefined;
@@ -69,6 +71,18 @@ if (values.validate) {
       fixture = await createEvalFixture(db, test, report.id);
       const guarded = hasUnsafeOverride([{ role: 'user', content: fixture.message }]);
       const rawModel = guarded ? null : createModelClient();
+      // Evaluation-only pacing shared across cases; never retries a provider call.
+      // Production controls and every historical split remain unchanged.
+      if (rawModel && values.split === 'evidence') {
+        const providerTurn = rawModel.turn.bind(rawModel);
+        rawModel.turn = async function* (request) {
+          const delay = Math.max(0, 6000 - (performance.now() - lastModelStart));
+          if (delay) await wait(delay, undefined, { signal: request.signal });
+          request.signal?.throwIfAborted();
+          lastModelStart = performance.now();
+          yield* providerTurn(request);
+        };
+      }
       session = await startRun({ customer: fixture.customer, model: guarded ? GUARD_MODEL_LABEL : rawModel!.model,
         provider: guarded ? 'guard' : provider, store: traceStore, source: 'eval', evalReportId: report.id });
       if (guarded) {

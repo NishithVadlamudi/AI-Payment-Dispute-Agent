@@ -128,7 +128,7 @@ export function renderEvidenceAnswer(customerId: string, evidence: readonly Answ
     const records = [...refunds.values()].filter(r => r.transaction_id === p.id);
     if (p.status === 'succeeded' && detailed.has(p.id)) {
       const reserved = records.filter(r => ['pending_approval', 'pending', 'succeeded'].includes(r.status)).reduce((sum, r) => sum + r.amount_cents, 0);
-      lines.push(`Unrefunded, unreserved balance: ${money(p.amount_cents - reserved, p.currency)}. Eligibility rules and human approval still apply.`);
+      lines.push(`Unrefunded, unreserved balance: ${money(p.amount_cents - reserved, p.currency)}. A refund request cannot exceed this balance. Eligibility rules and human approval still apply.`);
     }
     if (detailed.has(p.id) && !records.length) lines.push('No refund records were returned for this payment.');
     if (!detailed.has(p.id)) { lines.push('Refund history was not retrieved for this payment.'); incomplete = true; }
@@ -152,6 +152,10 @@ export function renderEvidenceAnswer(customerId: string, evidence: readonly Answ
     lines.push('Matching charges are a signal, not proof of a duplicate purchase.');
   if (miss || emptySearch) lines.push('At least one scoped lookup found no matching payment; no conclusion about other accounts is possible.');
   if (blocked) lines.push('A refund request was blocked by the eligibility rules. That attempt did not confirm a new refund request; existing records are shown above.');
+  // Only assert no new request when no mutation tool was attempted. A failed
+  // request may have an uncertain outcome; never infer absence from an error.
+  if (!evidence.some(item => item.name === 'request_refund'))
+    lines.push('No new refund request was created during this investigation.');
   if (incomplete) lines.push(INCOMPLETE_ANSWER);
   return { text: lines.join('\n\n'), complete: !incomplete };
 }

@@ -136,4 +136,19 @@ describe('evidence-only customer explanations', () => {
     expect(answer.text).not.toContain('incomplete');
   });
 
+  it('states the verified refund upper bound and read-only action outcome explicitly', () => {
+    const row = { ...tx, amount_cents: 9138 };
+    const answer = render([read(row), policy()]);
+    expect(answer.complete).toBe(true);
+    expect(answer.text).toContain('balance: $91.38. A refund request cannot exceed this balance.');
+    expect(answer.text).toContain('No new refund request was created during this investigation.');
+    expect(answer.text).not.toContain('eligible for $91.38');
+  });
+  it('does not claim no request was created after a mutation attempt with uncertain outcome', () => {
+    const answer = render([read(), { name: 'request_refund', input: { transaction_id: tx.id, amount_cents: 100, reason: 'Return' }, result: { error: { code: 'TOOL_FAILED', message: 'Uncertain result' } } }]);
+    expect(answer.complete).toBe(false);
+    expect(answer.text).not.toContain('No new refund request was created');
+    expect(answer.text).toContain('incomplete');
+  });
+
 });

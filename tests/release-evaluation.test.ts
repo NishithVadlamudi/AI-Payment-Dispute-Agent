@@ -8,6 +8,28 @@ import { hasUnsafeOverride } from '../src/lib/security/injection';
 const cases = evaluationSubsetSchema.parse(JSON.parse(readFileSync('evals/release.json', 'utf8')));
 const anchor = new Date('2026-10-29T00:00:00Z');
 describe('fresh release protocol and isolated scenario construction', () => {
+  it('validates fresh evidence-boundary labels against fixtures without reusing previous prompts', () => {
+    const fresh = evaluationSubsetSchema.parse(JSON.parse(readFileSync('evals/evidence.json', 'utf8')));
+    const previous = ['cases', 'holdout', 'regression', 'validation', 'release', 'qualification'].flatMap(name =>
+      evaluationSubsetSchema.parse(JSON.parse(readFileSync(`evals/${name}.json`, 'utf8'))));
+    expect(fresh).toHaveLength(24);
+    expect(fresh.filter(c => hasUnsafeOverride([{ role: 'user', content: c.message }]))).toHaveLength(2);
+    const states = new Set<string>();
+    for (const test of fresh) {
+      expect(previous.some(old => old.id === test.id || old.message === test.message)).toBe(false);
+      const seed = evaluationSeed(test, anchor);
+      const scenario = test.fixture.scenario;
+      if (scenario) {
+        const amount = scenario.transactions[0].amount_cents;
+        expect(test.expected_outcome.answer_patterns.some(p => new RegExp(p).test((amount / 100).toFixed(2)))).toBe(true);
+        for (const refund of scenario.refunds) states.add(refund.status);
+      }
+      if (test.expected_outcome.type === 'refund_requested')
+        expect(test.expected_outcome.transaction_ids.every(id => seed.transactions.find(t => t.id === id)?.amount_cents === test.expected_outcome.amount_cents)).toBe(true);
+    }
+    expect(states).toEqual(new Set(['pending_approval', 'pending', 'succeeded', 'rejected', 'failed']));
+  });
+
   it('keeps the post-remediation qualification set fresh and its refund values consistent', () => {
     const qualification = evaluationSubsetSchema.parse(JSON.parse(readFileSync('evals/qualification.json', 'utf8')));
     const previous = ['cases', 'holdout', 'regression', 'validation', 'release'].flatMap(name =>
