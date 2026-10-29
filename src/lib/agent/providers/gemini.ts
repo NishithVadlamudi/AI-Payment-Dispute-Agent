@@ -5,7 +5,7 @@ import { usageSchema } from '../../observability/schemas';
 import type { Content, Part } from '@google/genai';
 import type { ModelCall, ModelClient, ModelInput, ModelOutput } from '../types';
 import { ConfigurationError } from '../../db/client';
-import { ModelProviderError, providerFailure } from '../errors';
+import { ModelProviderError, providerFailure, providerDiagnostic } from '../errors';
 
 function nativeContents(history: ModelInput[]): Content[] {
   const contents: Content[] = [];
@@ -132,6 +132,7 @@ export function createGeminiClient(): ModelClient {
         yield { type: 'completed', output, ...(usage ? { usage } : {}), ...(resolvedModel ? { resolvedModel } : {}) };
       } catch (error) {
         request.signal?.throwIfAborted();
+        console.warn('gemini_request_failed', providerDiagnostic(error));
         throw providerFailure(error);
       }
     },

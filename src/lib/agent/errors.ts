@@ -4,6 +4,23 @@ import { TraceUnavailableError } from '../observability/errors';
 
 export class ModelProviderError extends Error {}
 
+// Allowlisted operational metadata only. Never log messages, URLs, headers,
+// response bodies, prompts or arbitrary error properties.
+export function providerDiagnostic(error: unknown) {
+  let current = error;
+  for (let depth = 0; depth < 4 && current && typeof current === 'object'; depth++) {
+    const record = current as { status?: unknown; name?: unknown; code?: unknown; cause?: unknown };
+    if (typeof record.status === 'number' && Number.isInteger(record.status) && record.status >= 400 && record.status <= 599)
+      return { category: record.status >= 500 ? 'upstream_server' : record.status === 429 ? 'quota' : record.status === 401 || record.status === 403 ? 'access' : 'request', http_status: record.status };
+    if (record.name === 'TimeoutError' || record.name === 'AbortError')
+      return { category: record.name === 'TimeoutError' ? 'timeout' : 'aborted', http_status: null };
+    if (typeof record.code === 'string' && ['ECONNRESET', 'ETIMEDOUT', 'ENOTFOUND', 'EAI_AGAIN', 'CERT_HAS_EXPIRED', 'UNABLE_TO_VERIFY_LEAF_SIGNATURE', 'DEPTH_ZERO_SELF_SIGNED_CERT', 'ERR_TLS_CERT_ALTNAME_INVALID'].includes(record.code))
+      return { category: 'network_or_tls', http_status: null, network_code: record.code };
+    current = record.cause;
+  }
+  return { category: 'unknown', http_status: null };
+}
+
 export function providerFailure(error: unknown): ModelProviderError {
   if (error instanceof ModelProviderError) return error;
   if (error instanceof Error && (error.name === 'AbortError' || error.name === 'TimeoutError'))
