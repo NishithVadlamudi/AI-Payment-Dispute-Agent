@@ -181,6 +181,59 @@ describe('provider-independent native tool-use loop', () => {
     const events = await collect(modelWith([[{ type: 'text', text: '返金は処理中です。' }, { type: 'completed', output: [] }]]));
     expect(events.at(-1)).toEqual({ type: 'done', steps: 1, limited: false });
   });
+  it('recovers one unusable answer from existing evidence with tools disabled', async () => {
+    const store = fakeStore();
+    const model = modelWith([
+      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }],
+      [{ type: 'text', text: '₀' }, { type: 'completed', output: [] }],
+      [{ type: 'text', text: 'The payment succeeded. No refund has been issued.' }, { type: 'completed', output: [] }],
+    ]);
+    const events = await collect(model, store);
+    expect(model.turn).toHaveBeenCalledTimes(3);
+    expect(model.requests[2].tools).toEqual([]);
+    expect(model.requests[2].input).toContainEqual(expect.objectContaining({ role: 'user', content: expect.stringContaining('successful tool evidence') }));
+    expect(events.filter((event) => event.type === 'text_delta').map((event) => event.type === 'text_delta' ? event.text : '').join('')).not.toContain('₀');
+    expect(events.at(-1)).toEqual({ type: 'done', steps: 3, limited: false });
+    expect(store.requestRefund).not.toHaveBeenCalled();
+    expect(store.audit).toHaveBeenCalledWith(expect.objectContaining({ action: 'answer_repair_started' }));
+  });
+  it('does not execute a tool returned during answer-only recovery', async () => {
+    const store = fakeStore();
+    const model = modelWith([
+      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }],
+      [{ type: 'text', text: '₀' }, { type: 'completed', output: [] }],
+      [{ type: 'text', text: 'I requested a refund.' }, { type: 'completed', output: [call('request_refund', { transaction_id: transactions[0].id, amount_cents: 8499, reason: 'Duplicate' })] }],
+    ]);
+    const events = await collect(model, store);
+    expect(store.requestRefund).not.toHaveBeenCalled();
+    expect(events.some((event) => event.type === 'done')).toBe(false);
+    expect(events.some((event) => event.type === 'text_delta' && event.text.includes('I requested'))).toBe(false);
+  });
+  it('stops after one unsuccessful repair without retrying until a pass', async () => {
+    const model = modelWith([
+      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }],
+      [{ type: 'text', text: '₀' }, { type: 'completed', output: [] }],
+      [{ type: 'text', text: '...' }, { type: 'completed', output: [] }],
+    ]);
+    const events = await collect(model);
+    expect(model.turn).toHaveBeenCalledTimes(3);
+    expect(events.at(-1)).toMatchObject({ type: 'error' });
+    expect(events.some((event) => event.type === 'done')).toBe(false);
+  });
+  it('does not extend the eight-turn ceiling to repair an answer', async () => {
+    const turns: ModelEvent[][] = Array.from({ length: MAX_STEPS - 1 }, (_, i) => [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id }, 'read_' + i)] }]);
+    turns.push([{ type: 'text', text: '₀' }, { type: 'completed', output: [] }]);
+    const model = modelWith(turns);
+    const events = await collect(model);
+    expect(model.turn).toHaveBeenCalledTimes(MAX_STEPS);
+    expect(events.at(-1)).toMatchObject({ type: 'error' });
+  });
+  it('never repairs a provider exception by making another model call', async () => {
+    const model = modelWith([[{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }]]);
+    model.turn.mockImplementationOnce(async function* () { throw Object.assign(new Error('Unavailable'), { status: 503 }); });
+    await expect(collect(model)).rejects.toThrow('Unavailable');
+    expect(model.turn).toHaveBeenCalledTimes(1);
+  });
   it('stops before a model call when the client has cancelled', async () => {
     const abort = new AbortController();
     abort.abort();

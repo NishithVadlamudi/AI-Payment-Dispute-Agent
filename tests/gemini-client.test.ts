@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { BlockedReason, FinishReason, ThinkingLevel } from '@google/genai';
+import { BlockedReason, FinishReason, ThinkingLevel, FunctionCallingConfigMode } from '@google/genai';
 import type { GenerateContentResponse, GenerateContentParameters } from '@google/genai';
 import { createModelClient } from '../src/lib/agent/client';
 import type { ModelClient, ModelEvent, ModelInput, ModelOutput } from '../src/lib/agent/types';
@@ -56,6 +56,14 @@ async function collect(client: ModelClient, input: ModelInput[] = [], signal?: A
 }
 
 describe('Gemini native streaming adapter', () => {
+  it('disables native function calling for an answer-only turn', async () => {
+    generate.mockResolvedValue(answer());
+    const client = createModelClient();
+    for await (const _ of client.turn({ instructions: 'Summarize verified evidence.', input: [], tools: [] })) { /* consume */ }
+    const request = generate.mock.calls[0][0] as GenerateContentParameters;
+    expect(request.config?.toolConfig?.functionCallingConfig?.mode).toBe(FunctionCallingConfigMode.NONE);
+    expect(request.config?.tools).toBeUndefined();
+  });
   beforeEach(() => {
     vi.unstubAllEnvs();
     vi.clearAllMocks();

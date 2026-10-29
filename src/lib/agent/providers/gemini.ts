@@ -61,7 +61,7 @@ export function createGeminiClient(): ModelClient {
           contents: nativeContents(request.input),
           config: {
             systemInstruction: request.instructions,
-            tools: [
+            ...(request.tools.length ? { tools: [
               {
                 functionDeclarations: request.tools.map((tool) => ({
                   name: tool.name,
@@ -69,8 +69,8 @@ export function createGeminiClient(): ModelClient {
                   parametersJsonSchema: tool.parameters,
                 })),
               },
-            ],
-            toolConfig: { functionCallingConfig: { mode: FunctionCallingConfigMode.AUTO } },
+            ] } : {}),
+            toolConfig: { functionCallingConfig: { mode: request.tools.length ? FunctionCallingConfigMode.AUTO : FunctionCallingConfigMode.NONE } },
             automaticFunctionCalling: { disable: true },
             automaticContinuation: false,
             abortSignal: request.signal,
