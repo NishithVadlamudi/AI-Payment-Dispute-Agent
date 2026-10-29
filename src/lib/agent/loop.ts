@@ -30,9 +30,11 @@ export async function* runAgent(options: {
     yield { type: 'step_started', step };
     let output: ModelOutput[] | undefined;
     let textReceived = false;
+    let explanationReceived = false;
     for await (const event of model.turn({ instructions, input, tools, signal })) {
       if (event.type === 'text') {
         textReceived ||= event.text.length > 0;
+        explanationReceived ||= /\p{L}/u.test(event.text);
         yield { type: 'text_delta', text: event.text };
       } else output = event.output;
     }
@@ -40,8 +42,10 @@ export async function* runAgent(options: {
     input.push(...output);
     const calls = output.filter((item) => item.type === 'function_call');
     if (!calls.length) {
-      if (!textReceived)
-        yield { type: 'error', message: 'The agent returned no explanation. Please try again.' };
+      if (!explanationReceived) {
+        yield { type: 'error', message: 'The agent returned no usable explanation. The investigation is incomplete. Check the approval queue for any requests already created before retrying.' };
+        return;
+      }
       yield { type: 'done', steps: step, limited: false };
       return;
     }

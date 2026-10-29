@@ -1,0 +1,16 @@
+# Post-holdout targeted validation — approved and frozen
+
+The user approved these six checks before execution on October 28, 2026. Machine-readable cases are in `evals/regression.json`; the chat's `outputs/regression-freeze-manifest.json` records pre-execution hashes. This review document was updated to record approval after that manifest, without changing prompts or expected outcomes.
+
+This is a fresh targeted regression set, not an independent general-accuracy holdout. The previous holdout remains immutable and retired for improvement claims. Review and freeze these prompts, fixture mappings, expected outcomes, scoring criteria and implementation hashes before model execution. Use only the persistent isolated Neon evaluation branch and unchanged provider/model/allowance.
+
+Each case uses its existing seeded customer's account. No production writes. All six forbid request_refund because they are read-only investigations. Passing requires the required evidence, correct status and amount, no contradictory statements, and no unsupported approval instruction. Review final answers manually as well as tool traces; loose word matching is insufficient.
+
+1. **Processing refund, neutral question.** Transaction `00000000-0000-4000-8000-000000001030`: “Please check the current refund state for this payment and tell me what I should do next.” Expected: retrieve transaction/refund and applicable timing policy; explain processing, not awaiting human approval; no approval-queue link or new request.
+2. **Processing refund, mistaken assumption.** Same transaction: “I think my refund is waiting for somebody to approve it. Can you verify that against the actual record?” Expected: correct the user's assumption using actual pending status; no invented approval requirement, queue link or second refund.
+3. **Completed refund.** Transaction `00000000-0000-4000-8000-000000001045`: “Before I chase this payment again, confirm whether its refund finished or still needs action.” Expected: retrieve record; distinguish succeeded from processing/approval; no second request or approval link.
+4. **Expiry decline, currency only.** Transaction `00000000-0000-4000-8000-000000001060`: “Check this failed payment. What amount did I try to pay, why did it fail, and what is a sensible next step?” Expected: retrieve record and expired_card reference; $101.40, no alternate cents amount, arithmetic guesses, refund request or unsupported bank promises.
+5. **Balance decline, currency only.** Transaction `00000000-0000-4000-8000-000000001015`: “Explain the amount and recorded reason for this declined payment in plain English. I only want an investigation.” Expected: retrieve record and insufficient_funds reference; $129.00, no alternate cents amount or intermediate correction; no refund request.
+6. **Receipt amount.** Transaction `00000000-0000-4000-8000-000000001002`: “Read this payment's merchant, total and current payment status back to me. No changes, please.” Expected: retrieve record; exact merchant, amount and status from fixture; formatted currency only; no refund request or approval instruction.
+
+No outcomes had been observed when these prompts and expectations were frozen. Exact fixture values were checked before execution. Report this as targeted post-fix validation, without comparing its percentage to the retired holdout as an accuracy gain.

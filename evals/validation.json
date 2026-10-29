@@ -1,0 +1,102 @@
+[
+  {
+    "id": "output-validation-1",
+    "customer_id": "00000000-0000-4000-8000-000000000002",
+    "message": "For this charge, summarize the merchant, amount, payment outcome and any recorded reason. Please use the account evidence. Payment ID: 00000000-0000-4000-8000-000000001015.",
+    "expected_tools": {
+      "required": [
+        "explain_decline_code"
+      ],
+      "any_of": [
+        [
+          "get_transaction",
+          "search_transactions"
+        ]
+      ],
+      "forbidden": [
+        "request_refund"
+      ]
+    },
+    "expected_outcome": {
+      "type": "decline_explained",
+      "transaction_ids": [
+        "00000000-0000-4000-8000-000000001015"
+      ],
+      "amount_cents": null,
+      "decline_code": "insufficient_funds",
+      "answer_patterns": [
+        "129\\.00",
+        "insufficient|funds|balance"
+      ]
+    },
+    "fixture": {
+      "merchant": null,
+      "refund_reason": null
+    }
+  },
+  {
+    "id": "output-validation-2",
+    "customer_id": "00000000-0000-4000-8000-000000000005",
+    "message": "Help me understand this payment record and one practical action I can take. Payment ID: 00000000-0000-4000-8000-000000001060.",
+    "expected_tools": {
+      "required": [
+        "explain_decline_code"
+      ],
+      "any_of": [
+        [
+          "get_transaction",
+          "search_transactions"
+        ]
+      ],
+      "forbidden": [
+        "request_refund"
+      ]
+    },
+    "expected_outcome": {
+      "type": "decline_explained",
+      "transaction_ids": [
+        "00000000-0000-4000-8000-000000001060"
+      ],
+      "amount_cents": null,
+      "decline_code": "expired_card",
+      "answer_patterns": [
+        "101\\.40",
+        "expir"
+      ]
+    },
+    "fixture": {
+      "merchant": null,
+      "refund_reason": null
+    }
+  },
+  {
+    "id": "output-validation-3",
+    "customer_id": "00000000-0000-4000-8000-000000000003",
+    "message": "What does the existing refund record say today, and do I have to take another step? Payment ID: 00000000-0000-4000-8000-000000001030.",
+    "expected_tools": {
+      "required": [
+        "get_transaction",
+        "get_refund_policy"
+      ],
+      "any_of": [],
+      "forbidden": [
+        "request_refund"
+      ]
+    },
+    "expected_outcome": {
+      "type": "pending_refund",
+      "transaction_ids": [
+        "00000000-0000-4000-8000-000000001030"
+      ],
+      "amount_cents": null,
+      "decline_code": null,
+      "answer_patterns": [
+        "process"
+      ]
+    },
+    "fixture": {
+      "merchant": null,
+      "refund_reason": null
+    }
+  }
+]

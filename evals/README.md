@@ -48,4 +48,16 @@ The existing partial report in `docs/evaluation-results.md` remains unchanged. V
 
 ## Current status
 
-A partial version-2 development baseline is recorded in [evaluation-baseline-v2.md](../docs/evaluation-baseline-v2.md): eight model-backed passes, eight guard passes, one budget-blocked case and 23 skipped cases. No holdout result has been measured. No agent prompts, provider/model choices or budget settings have been tuned in this phase. Do not publish before/after accuracy or improvement claims until comparable completed measurements exist.
+The original partial version-2 baseline is preserved in [evaluation-baseline-v2.md](../docs/evaluation-baseline-v2.md). Subsequent audited continuations now complete all 40 development cases: 32 model-backed passes and eight guard passes. [Completed campaign evidence](../docs/development-evaluation-complete.md) retains the original blocked/skipped attempts and one provider timeout; only infrastructure cases were retried. During the development campaign no agent prompt, provider/model, token rate or daily cap changed; reservation accounting was corrected and historical successful allocations were recovered with an exact audit. Do not publish before/after model-accuracy improvement claims. The subsequently approved holdout and its qualitative findings are recorded below.
+
+### Completed frozen holdout
+
+The 2026-10-28 run completed 16/16 automated outcomes (14 model-backed, two guards), without infrastructure errors. [Qualitative review](../docs/holdout-results.md) identified status and money-presentation issues missed by the scorer. Do not call this perfect accuracy or reuse this holdout for improvement claims after tuning.
+
+### Targeted post-fix regression
+
+`npm run eval:validate -- --split regression` validates the six approved targeted cases without model calls. Live execution uses the same CLI with `--split regression`; only use the persistent isolated Neon branch. [Current results](../docs/post-holdout-validation-results.md): all six cases have completed outcomes across two batches—five automated/manual passes and one genuine unusable-answer failure. The earlier provider failure and skipped attempts remain preserved. No unfinished cases remain; do not rerun the completed failure until passing or relabel it as infrastructure. Further changes require fresh frozen validation.
+
+### Fresh output-handling smoke checks
+
+The user authorized fresh validation after unusable-output handling was added. --split validation reads separately frozen evals/validation.json. [Fresh results](../docs/output-handling-validation-results.md): three automated/manual passes, no retries or infrastructure errors. Preserve the earlier 5/6 campaign and its failure; this is not an untouched holdout or an accuracy improvement.

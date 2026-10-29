@@ -20,3 +20,8 @@ evals/results/
 # Generated database deployment bundle.
 deploy/db-init.cjs
 .neon
+
+# Local sandbox diagnostics and temporary Node runtime caches.
+next-panic-*.log
+node-compile-cache/
+tsx-*/

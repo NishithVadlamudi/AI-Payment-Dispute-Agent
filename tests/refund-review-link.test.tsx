@@ -17,6 +17,17 @@ const call = (): ToolActivity => ({
   status: "done",
 });
 describe("customer refund next step", () => {
+  it.each(["pending", "succeeded", "rejected", "failed"] as const)(
+    "does not send a %s refund to human approval even with a stale approval flag",
+    (status) => {
+      render(<RefundReviewLink calls={[{
+        ...call(),
+        result: { refund: { ...refunds[0], status }, requires_approval: true },
+      }]} />);
+      expect(screen.queryByRole("link")).toBeNull();
+      expect(screen.queryByText(/No refund has been issued/)).toBeNull();
+    },
+  );
   it("links a validated pending request to its exact review card once", () => {
     render(
       <RefundReviewLink calls={[call(), { ...call(), callId: "repeat" }]} />,

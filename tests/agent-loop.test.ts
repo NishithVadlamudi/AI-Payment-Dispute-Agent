@@ -172,6 +172,15 @@ describe('provider-independent native tool-use loop', () => {
       'did not complete',
     );
   });
+  it.each(['₀', '   ', '...', '129.00'])('does not report a symbol-only or numeric answer as completed: %s', async (text) => {
+    const events = await collect(modelWith([[{ type: 'text', text }, { type: 'completed', output: [] }]]));
+    expect(events).toContainEqual(expect.objectContaining({ type: 'error', message: expect.stringContaining('incomplete') }));
+    expect(events.some((event) => event.type === 'done')).toBe(false);
+  });
+  it('accepts an explanation written in a non-Latin script', async () => {
+    const events = await collect(modelWith([[{ type: 'text', text: '返金は処理中です。' }, { type: 'completed', output: [] }]]));
+    expect(events.at(-1)).toEqual({ type: 'done', steps: 1, limited: false });
+  });
   it('stops before a model call when the client has cancelled', async () => {
     const abort = new AbortController();
     abort.abort();

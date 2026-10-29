@@ -25,7 +25,7 @@ export const toolSchemas = {
   },
   get_transaction: {
     description:
-      'Retrieve one transaction and all its refund records within the selected customer’s account. Always check existing refunds before recommending a next step. This tool cannot issue a refund.',
+      'Retrieve one transaction and all its refund records within the selected customer’s account. Always check existing refunds before recommending a next step. Refund status pending_approval means awaiting a human decision; pending means processing, not awaiting approval; succeeded means completed. Only pending_approval belongs in /approvals. Amount fields are integer cents, not dollars. This tool cannot issue a refund.',
     input: z.strictObject({ transaction_id: z.uuid() }),
     output: z.object({ transaction: transactionSchema, refunds: z.array(refundSchema) }),
   },

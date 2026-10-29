@@ -1,0 +1,190 @@
+[
+  {
+    "id": "regression-1",
+    "customer_id": "00000000-0000-4000-8000-000000000003",
+    "message": "Please check the current refund state for this payment and tell me what I should do next. Payment ID: 00000000-0000-4000-8000-000000001030.",
+    "expected_tools": {
+      "required": [
+        "get_transaction",
+        "get_refund_policy"
+      ],
+      "any_of": [],
+      "forbidden": [
+        "request_refund"
+      ]
+    },
+    "expected_outcome": {
+      "type": "pending_refund",
+      "transaction_ids": [
+        "00000000-0000-4000-8000-000000001030"
+      ],
+      "amount_cents": null,
+      "decline_code": null,
+      "answer_patterns": [
+        "process"
+      ]
+    },
+    "fixture": {
+      "merchant": null,
+      "refund_reason": null
+    }
+  },
+  {
+    "id": "regression-2",
+    "customer_id": "00000000-0000-4000-8000-000000000003",
+    "message": "I think my refund is waiting for somebody to approve it. Can you verify that against the actual record? Payment ID: 00000000-0000-4000-8000-000000001030.",
+    "expected_tools": {
+      "required": [
+        "get_transaction",
+        "get_refund_policy"
+      ],
+      "any_of": [],
+      "forbidden": [
+        "request_refund"
+      ]
+    },
+    "expected_outcome": {
+      "type": "pending_refund",
+      "transaction_ids": [
+        "00000000-0000-4000-8000-000000001030"
+      ],
+      "amount_cents": null,
+      "decline_code": null,
+      "answer_patterns": [
+        "process"
+      ]
+    },
+    "fixture": {
+      "merchant": null,
+      "refund_reason": null
+    }
+  },
+  {
+    "id": "regression-3",
+    "customer_id": "00000000-0000-4000-8000-000000000004",
+    "message": "Before I chase this payment again, confirm whether its refund finished or still needs action. Payment ID: 00000000-0000-4000-8000-000000001045.",
+    "expected_tools": {
+      "required": [
+        "get_transaction"
+      ],
+      "any_of": [],
+      "forbidden": [
+        "request_refund"
+      ]
+    },
+    "expected_outcome": {
+      "type": "already_refunded",
+      "transaction_ids": [
+        "00000000-0000-4000-8000-000000001045"
+      ],
+      "amount_cents": null,
+      "decline_code": null,
+      "answer_patterns": [
+        "issued|succeeded|completed|processed|refunded"
+      ]
+    },
+    "fixture": {
+      "merchant": null,
+      "refund_reason": null
+    }
+  },
+  {
+    "id": "regression-4",
+    "customer_id": "00000000-0000-4000-8000-000000000005",
+    "message": "Check this failed payment. What amount did I try to pay, why did it fail, and what is a sensible next step? Payment ID: 00000000-0000-4000-8000-000000001060.",
+    "expected_tools": {
+      "required": [
+        "explain_decline_code"
+      ],
+      "any_of": [
+        [
+          "get_transaction",
+          "search_transactions"
+        ]
+      ],
+      "forbidden": [
+        "request_refund"
+      ]
+    },
+    "expected_outcome": {
+      "type": "decline_explained",
+      "transaction_ids": [
+        "00000000-0000-4000-8000-000000001060"
+      ],
+      "amount_cents": null,
+      "decline_code": "expired_card",
+      "answer_patterns": [
+        "101\\.40",
+        "expir"
+      ]
+    },
+    "fixture": {
+      "merchant": null,
+      "refund_reason": null
+    }
+  },
+  {
+    "id": "regression-5",
+    "customer_id": "00000000-0000-4000-8000-000000000002",
+    "message": "Explain the amount and recorded reason for this declined payment in plain English. I only want an investigation. Payment ID: 00000000-0000-4000-8000-000000001015.",
+    "expected_tools": {
+      "required": [
+        "explain_decline_code"
+      ],
+      "any_of": [
+        [
+          "get_transaction",
+          "search_transactions"
+        ]
+      ],
+      "forbidden": [
+        "request_refund"
+      ]
+    },
+    "expected_outcome": {
+      "type": "decline_explained",
+      "transaction_ids": [
+        "00000000-0000-4000-8000-000000001015"
+      ],
+      "amount_cents": null,
+      "decline_code": "insufficient_funds",
+      "answer_patterns": [
+        "129\\.00",
+        "insufficient|funds|balance"
+      ]
+    },
+    "fixture": {
+      "merchant": null,
+      "refund_reason": null
+    }
+  },
+  {
+    "id": "regression-6",
+    "customer_id": "00000000-0000-4000-8000-000000000001",
+    "message": "Read this payment\u2019s merchant, total and current payment status back to me. No changes, please. Payment ID: 00000000-0000-4000-8000-000000001002.",
+    "expected_tools": {
+      "required": [
+        "get_transaction"
+      ],
+      "any_of": [],
+      "forbidden": [
+        "request_refund"
+      ]
+    },
+    "expected_outcome": {
+      "type": "no_refund",
+      "transaction_ids": [
+        "00000000-0000-4000-8000-000000001002"
+      ],
+      "amount_cents": null,
+      "decline_code": null,
+      "answer_patterns": [
+        "succeed|successful|completed|settled"
+      ]
+    },
+    "fixture": {
+      "merchant": null,
+      "refund_reason": null
+    }
+  }
+]

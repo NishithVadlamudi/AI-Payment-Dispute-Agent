@@ -18,9 +18,9 @@ import { createAbuseControls } from '../src/lib/security/controls';
 import { GUARD_MODEL_LABEL, hasUnsafeOverride, injectionRefusal } from '../src/lib/security/injection';
 
 const { values } = parseArgs({ options: { limit: { type: 'string' }, case: { type: 'string' }, 'remaining-from': { type: 'string' }, split: { type: 'string', default: 'dev' }, validate: { type: 'boolean' } } });
-if (!['dev', 'holdout'].includes(values.split!)) throw new Error('Choose --split dev or --split holdout.');
-const raw = await readFile(values.split === 'holdout' ? 'evals/holdout.json' : 'evals/cases.json', 'utf8');
-const allCases = (values.split === 'holdout' ? evaluationSubsetSchema : datasetSchema).parse(JSON.parse(raw));
+if (!['dev', 'holdout', 'regression', 'validation'].includes(values.split!)) throw new Error('Choose --split dev, --split holdout, --split regression or --split validation.');
+const raw = await readFile(values.split === 'dev' ? 'evals/cases.json' : `evals/${values.split}.json`, 'utf8');
+const allCases = (values.split === 'dev' ? datasetSchema : evaluationSubsetSchema).parse(JSON.parse(raw));
 if (values.validate) {
   console.log(`Validated ${allCases.length} ${values.split} evaluation cases. No model accuracy was measured.`);
 } else {

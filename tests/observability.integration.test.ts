@@ -25,6 +25,13 @@ afterAll(async () => {
   await db.from('eval_reports').delete().eq('id', report.id);
 });
 describe('persistent traces and isolated eval fixtures', () => {
+  it('persists a 16-case holdout report while rejecting empty or oversized datasets',async()=>{
+    await createEvalStore(db).save({...report,dataset_size:16,total_cases:16});
+    const independent=createClient(process.env.SUPABASE_URL!,process.env.SUPABASE_SERVICE_ROLE_KEY!,{auth:{persistSession:false}});
+    const saved=await independent.from('eval_reports').select('dataset_size,total_cases').eq('id',report.id).single();
+    expect(saved.error).toBeNull();expect(saved.data).toEqual({dataset_size:16,total_cases:16});
+    for(const dataset_size of [0,51])expect((await db.from('eval_reports').update({dataset_size}).eq('id',report.id)).error?.code).toBe('23514');
+  });
   it('persists run data and retains trace/audit history when fixture customers are removed', async () => {
     await createEvalStore(db).save(report);
     const fixture = await createEvalFixture(db, cases[0], report.id);

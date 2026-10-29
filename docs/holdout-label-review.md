@@ -1,6 +1,6 @@
 # Holdout label review
 
-Status: author-labelled draft; source consistency checked, independent human review pending. No model outputs have been used to adjust these labels. This is a small phrasing/generalization holdout over shared demo scenarios, not unseen real financial data.
+Status: source consistency checked. The user was shown all 16 prompts and expected outcomes, then explicitly approved freezing the rubric and running it on October 28, 2026. This records rubric approval, not an independent expert annotation study. No model outputs have been used to adjust these labels. This is a small phrasing/generalization holdout over shared demo scenarios, not unseen real financial data.
 
 | Case | Expected outcome | Gold evidence |
 | --- | --- | --- |
