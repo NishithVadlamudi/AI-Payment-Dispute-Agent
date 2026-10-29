@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import type { DatabaseClient } from "../db/client";
-import { createSeedData } from "../demo/seed-data";
+import { evaluationSeed } from "./scenario";
 import { customerSchema } from "../db/schemas";
 import type { EvalCase } from "./schemas";
 
@@ -10,7 +10,7 @@ export async function createEvalFixture(
   test: EvalCase,
   suiteId: string,
 ) {
-  const seed = createSeedData();
+  const seed = evaluationSeed(test);
   if (!seed.customers.some((row) => row.id === test.customer_id))
     throw new Error("Unknown demo customer in evaluation fixture.");
   const map = new Map<string, string>();

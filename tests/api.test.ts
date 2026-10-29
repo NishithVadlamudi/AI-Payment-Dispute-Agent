@@ -9,7 +9,7 @@ import { readAgentEvents } from '../src/lib/agent/events';
 import { createAbuseControls, SafetyLimitError } from '../src/lib/security/controls';
 import { AuditUnavailableError } from '../src/lib/db/audit';
 import { providerFailure } from '../src/lib/agent/errors';
-import { fakeStore, customers } from './helpers';
+import { fakeStore, customers, transactions } from './helpers';
 
 vi.mock('../src/lib/db/client', () => ({
   createDatabaseClient: vi.fn(),
@@ -38,7 +38,11 @@ describe('server API boundaries', () => {
     vi.mocked(createStore).mockReturnValue(store);
     vi.mocked(createModelClient).mockReturnValue({
       model: 'mock-openai',
-      async *turn() {
+      async *turn({ input }) {
+        if (!input.some(item => item.type === 'function_call_output')) {
+          yield { type: 'completed', output: [{ type: 'function_call', call_id: 'read', name: 'get_transaction', arguments: JSON.stringify({ transaction_id: transactions[0].id }) }] };
+          return;
+        }
         yield { type: 'text', text: 'No payments were changed.' };
         yield { type: 'completed', output: [] };
       },
@@ -50,7 +54,7 @@ describe('server API boundaries', () => {
     expect(response.headers.get('content-type')).toBe('text/event-stream');
     const events = [];
     for await (const event of readAgentEvents(response.body!)) events.push(event);
-    expect(events).toContainEqual({ type: 'text_delta', text: 'No payments were changed.' });
+    expect(events).toContainEqual({ type: 'text_delta', text: expect.stringContaining('Northstar Electronics') });
     expect(events.at(-1)?.type).toBe('done');
     expect(store.customer).toHaveBeenCalledWith(customers[0].id);
   });

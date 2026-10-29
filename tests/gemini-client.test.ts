@@ -166,7 +166,7 @@ describe('Gemini native streaming adapter', () => {
       { type: 'text', text: 'Public answer.' },
     ]);
   });
-  it('preserves signed native calls, groups parallel results, and continues the real agent loop', async () => {
+  it('preserves signed parallel calls while refusing an answer with no payment evidence', async () => {
     const nativeParts = [
       {
         functionCall: {
@@ -203,7 +203,8 @@ describe('Gemini native streaming adapter', () => {
       store: fakeStore(),
     }))
       events.push(event);
-    expect(events.at(-1)).toEqual({ type: 'done', steps: 2, limited: false });
+    expect(events.at(-1)).toMatchObject({ type: 'error', message: expect.stringContaining('incomplete') });
+    expect(events.some(event => event.type === 'text_delta')).toBe(false);
     expect(events.filter((event) => event.type === 'tool_finished')).toHaveLength(2);
     const next = generate.mock.calls[1][0] as GenerateContentParameters;
     expect(next.contents).toEqual([

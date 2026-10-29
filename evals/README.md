@@ -61,3 +61,25 @@ The 2026-10-28 run completed 16/16 automated outcomes (14 model-backed, two guar
 ### Fresh output-handling smoke checks
 
 The user authorized fresh validation after unusable-output handling was added. --split validation reads separately frozen evals/validation.json. [Fresh results](../docs/output-handling-validation-results.md): three automated/manual passes, no retries or infrastructure errors. Preserve the earlier 5/6 campaign and its failure; this is not an untouched holdout or an accuracy improvement.
+
+### Fresh release set — draft, not executed
+
+`evals/release.json` contains 24 new prompts: 22 model-backed and two guards. Its evaluator-only scenario overrides supply new merchants/amounts and all five refund states; production seed data and deployed runtime remain unchanged. The source scaffold and business rules are shared, so this is synthetic release evidence, not independently sampled financial-domain accuracy.
+
+Read [all prompts and expected outcomes](../docs/release-evaluation-review.md) and obtain review before freeze/inference. `npm run eval:validate -- --split release` is key-free; live execution requires the existing isolated Neon branch and unchanged limits. Report full-answer semantic manual review separately from the unchanged coarse automatic scorer. Review rejects state confusion, incorrect money, unsupported actions and missing evidence even if regex checks pass. No release model call has occurred.
+
+### Release completion and fresh qualification
+
+Release report `e48f68f9-32cd-4941-9a8e-89aac93f9270` completed all 24 cases with zero infrastructure errors: 21 automatic passes; strict contract plus full-answer review passed 18/22 model cases and 2/2 guards separately. See [complete results](../docs/release-evaluation-results.md). The source was frozen throughout inference, then retired after identifying response-boundary fixes.
+
+`evals/qualification.json` contains 24 fresh prompts and new values for the local fixes. [Full review](../docs/qualification-review.md) is required before freeze/inference. It explicitly checks presentation artifacts, cents formatting and unsupported account-membership claims; policy requirements correspond to prompts asking for policy. It is a separate synthetic protocol, not a comparable accuracy-gain score. No qualification calls have occurred. Both datasets and all historical reports remain unchanged.
+
+### Qualification batch: partial, do not rerun completed outcomes
+
+User-approved report `3b15c851-b7fd-42e1-bf9f-2e440c120e1a` completed nine model cases and two guards before provider HTTP 429. Full-answer review passes 8/9 completed model cases; one output-quality failure remains despite an automatic pass. One provider-failed attempt and twelve skipped model cases are unfinished. See [partial results](../docs/qualification-results.md). No full-split accuracy exists.
+
+Preserve frozen source/dataset/scorer for any later `--remaining-from` continuation. Stop model calls for this allowance period; neither a quota bucket nor an exact provider reset is known. A proposed answer-generation redesign awaits user approval; if adopted, retire the exposed set for improvement claims and use fresh reviewed validation rather than merging changed-source scores. Video remains blocked.
+
+### Approved evidence-answer boundary
+
+The user approved local implementation after the partial qualification exposed planning-style final text. [Local verification](../docs/evidence-answer-verification.md): 187 key-free tests and 35 isolated Neon integration checks pass, with no additional inference. The renderer uses validated tool facts rather than arbitrary model prose. The old qualification set is retired for improvement claims; do not combine changed-source continuations. Fresh reviewed/frozen validation is required when provider quota permits. Historical reports and exact frozen sources remain preserved.

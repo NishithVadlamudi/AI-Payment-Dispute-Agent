@@ -1,56 +1,55 @@
-# Completion gates before final recording
+# Completion checklist — October 29, 2026
 
-The public demo is live, but the project must not be described as fully evaluated. Final media recording is paused at the user's request until the end product and its evidence are complete.
+Completion reopened at the user's request. Final media and publication are blocked until the current runtime receives fresh frozen evaluation and the final product checks are reviewed. Earlier deployed behavior and historical measurements remain recorded below.
 
-## Evaluation
+## Required before new final video
 
-Latest evidence: [development evaluation completed](development-evaluation-complete.md). All 40 development cases now have completed passing automated outcomes (32 model-backed, eight guards), across four audited batches. Successful-reservation recovery and the settlement fix enabled completion without waiting for reset or raising the cap. Persistent evaluation branch: `br-summer-bonus-b5us8mp6`; preserve it. The user approved the frozen rubric and the holdout completed: 16/16 automated passes (14 model-backed, two guards), zero infrastructure errors. Actual-answer review found two misleading refund-status explanations and two money-presentation issues; see [holdout results](holdout-results.md). Do not reuse this holdout to claim improvement after tuning.
+- [x] Preserve local changes, secrets, old reports and original narration. No media push.
+- [x] Audit current key-free checks: 165 tests and type checking pass; five new tests validate fresh scenario isolation. Agent/tools/database/UI runtime source still matches deployed `932d8c3`.
+- [x] Prepare 24 fresh release cases with new values and explicit semantic expectations (22 model cases, two guards); dataset validation passes.
+- [x] User reviews all prompts/expected outcomes in [release evaluation review](release-evaluation-review.md); freeze dataset/runtime/prompt/scorer/fixture hashes before inference.
+- [x] Run on the persistent isolated Neon branch within unchanged Gemini limits. Review every actual final answer and tool trace. Preserve completed failures; continue infrastructure/missing cases only.
+- [x] Report completed-model denominator, guard denominator, infrastructure/skipped coverage and uncertainty separately. No broad accuracy claim from a synthetic sample.
+- [x] Preserve/retire release report `e48f68f9`: 18/22 strict model cases and 2/2 guards, zero infrastructure errors. See [results](release-evaluation-results.md).
+- [x] Fix tool-turn text leakage, malformed final formatting and isolated scoped-miss inference; 173 key-free tests and 34 isolated Neon database tests pass, with type checking and production build. Runtime fixes remain local.
+- [x] User approved and froze [qualification cases](qualification-review.md); first batch stopped correctly on provider HTTP 429.
+- [ ] Complete/remediate qualification: 8/9 completed model answers pass review, one genuine output-quality failure, 2/2 guards; one quota-failed attempt and 12 model skips remain. No full-suite accuracy established. See [partial results](qualification-results.md).
+- [x] User approved [evidence-based final answers](evidence-answer-proposal.md). Implemented locally: 187 key-free tests, types/build and 35 isolated Neon integration tests pass. [Verification](evidence-answer-verification.md).
+- [ ] Obtain explicit commit/push/deploy approval for the code/evaluation changes, excluding media.
+- [ ] Fresh reviewed/frozen current-runtime validation after quota permits; do not reuse the exposed qualification set for improvement claims.
+- [ ] Verify final deployment and core workflows, then write a new video script around working behavior and verified current results. Keep detailed historical failures in evaluation docs rather than a demo-video centerpiece.
 
-- [x] Preserve the original partial report and the version-2 partial baseline.
-- [x] Add safe continuation selection: `--remaining-from <report.json>[,<report.json>...]` excludes completed passes **and completed scoring failures**, retrying only missing/infrastructure cases. Every batch gets a separate immutable report ID; do not overwrite original reports or claim a batch is the full suite.
-- [x] Complete all 40 development cases across available allowance periods with the same prompt/model/scorer/fixture source. Track all report IDs and hashes. A completed failure remains a measured failure; do not rerun until passing.
-- [ ] Root-cause any substantive development failures, make one justified change at a time, and rerun appropriate checks. Never tune on holdout outputs.
-- [x] Review labels in `docs/holdout-label-review.md` and `evals/holdout.json`, then freeze dataset and implementation hashes. Do not claim independent human label review until it actually occurs.
-- [x] Run all 16 holdout cases on the frozen implementation across available allowance periods; preserve failures and infrastructure coverage. A holdout need not be 100% to be complete, but every case must receive a valid outcome or a documented genuine unresolved blocker.
-- [x] Produce an auditable combined development-case ledger across compatible batches, retaining attempted failures/estimated costs separately from final coverage. The holdout report contains all 16 outcomes in one batch; qualitative findings are documented separately. Do not cherry-pick the best attempt, average percentages from different denominators, or compare incompatible scorer versions as a model gain.
+## Product and deployment
 
-## Allowance and isolation
+- [x] Next.js dashboard, payment evidence, investigation drafts, chat, reviewer approvals and observability.
+- [x] Responsive light/dark interface checked at 320–1920px; actual Safari/WebKit device testing remains outside the verified platform coverage.
+- [x] Integer cents, customer scope, human approval, database locks and unique execution keys. Prior isolated Neon concurrent approval check produced one execution.
+- [x] 160 key-free tests, type checking, four dataset validations, production build and deployment bundle passed in CI 40926019779.
+- [x] 34 isolated Neon integration checks passed at the documented database milestone. These were Neon checks, separate from earlier local Postgres checks.
+- [x] Approved recovery fix `932d8c3` pushed and deployed to existing Render Free + Neon. Public API/dashboard/payment details and one read-only Gemini investigation verified; refunds unchanged. See [rollout](rollout-932d8c3.md).
+- [x] Unusable normal-completion answer now allows one tools-disabled recovery within the original eight-turn limit. Fault-injected isolated check with actual Neon evidence and one real Gemini call passed. See [recovery evidence](answer-recovery-verification.md).
+- [x] Existing provider/model, rate and spending limits preserved; no automatic paid fallback, reset or reseed.
 
-On 2026-10-27, production allocated 437,555 microUSD and the isolated baseline allocated 4,463,770, for 4,901,325 of the unchanged 5,000,000 daily allowance. The next turn was blocked. Deleting the baseline branch does not erase that accounting history. No further model calls should be made during that UTC day; a new branch must not be used as a fresh allowance. The next reset is 2026-10-28 00:00 UTC (October 27, 8 PM America/New_York).
+## Evaluation closure
 
-Use one persistent isolated evaluation branch after reset and retain its allowance state across batches. Keep production limits unchanged. Account for all relevant same-day evaluation/demo allocations before calls; branch isolation must not multiply the authorized daily allowance. Do not delete evaluation evidence until reports are preserved and branch cleanup is explicitly approved. Provider quota may block work independently of the application allowance.
-
-## Product and ship
-
-- [x] Public Render Free + existing Neon deployment verified; no real payment processor.
-- [x] Prior 29 isolated Neon database tests and actual duplicate-approval verification.
-- [x] Prior 131-test CI pass and six requested responsive/theme checks.
-- [x] New continuation tests: 133 key-free tests pass; type checking and both dataset validations pass.
-- [ ] Validate continuation changes on final CI after approved commit/push; local changes are not automatically deployed.
-- [x] Public read-only Gemini investigation succeeded on deployed diagnostic revision `6fbbee4`: run `bda46377-4ed1-40a4-856a-52e0f2969590`, correct $129.00 decline explanation and tools, successful completion, unchanged refund counts. Independent production Neon evidence in `provider-debugging.md`; earlier failures remain preserved.
-- [ ] Keep current known limitations visible: public fictional reviewer access, partial account totals, shared proxy bucket, free-host cold starts and development-tool advisories.
-- [ ] Update README/result tables and user-facing evaluation material from final measurements. No invented holdout before/after baseline; if none exists, say so.
+- [x] All 40 development cases completed across immutable compatible reports: 32 model-backed passes and eight guard passes; infrastructure attempts preserved.
+- [x] User-reviewed frozen 16-case holdout completed: 16 automated passes, with two status confusions and two money-presentation issues found during manual review. Holdout retired for improvement claims.
+- [x] Six later targeted cases completed: five passes and one genuine malformed answer. That historical failure remains a failure after the product fix.
+- [x] Fresh three-case smoke set passed automated/manual review. Separate fault injection verified recovery; neither constitutes a replacement holdout or general accuracy claim.
+- [x] Dataset/code/prompt/scorer provenance, failed reservations, skipped attempts and infrastructure errors retained. No rerun-until-pass of completed scoring failures.
+- [x] Latest results and limitations reflected in README and career handoff. See [development](development-evaluation-complete.md), [holdout](holdout-results.md) and [targeted results](post-holdout-validation-results.md).
 
 ## Media and career handoff
 
-- [x] Walkthrough script, launch storyboard and approved isolated Whisper setup.
-- [ ] Obtain the user's ElevenLabs MP3 after the final results wording is settled.
-- [ ] Capture actual read-only usage using headless Chrome/CDP; generate and inspect current `docs/demo.gif` and `docs/screenshot.jpg`.
-- [ ] Produce narrated walkthrough with real word timestamps, final transcription, audio-gap check and scene-still review.
-- [ ] Produce 20-second launch composition, original soundtrack, poster and share copy; inspect settled and transition frames.
-- [ ] Deliver all six `docs/career/` files with only measured claims; leave portfolio repo and résumé PDF untouched.
-- [ ] Obtain explicit approval for new installs, commits/pushes or destructive cleanup as required. No final recording before evaluation/product evidence is ready.
+- [x] 15-second GIF and 1920×1080 screenshot use actual public UI and unsent drafts.
+- [x] 20-second launch video uses actual UI crops, original instrumental score and inspected encoded scenes.
+- [x] Narrated walkthrough uses the supplied voice take at its original pace: 74.73 seconds, timed captions, final audio transcription and scene inspection. The approximately 60-second target was exceeded to preserve the supplied take.
+- [x] Narration's spoken 154-test milestone is historical; current deployed count is 160. Raw MP3 stays outside Git. See [media handoff](media/handoff.md) for disclosures and technical QA.
+- [x] Six career files completed; portfolio repository and résumé PDF untouched. Proposed KB IDs require collision checks only when integration is requested.
+- [ ] Publish the concrete reviewed media/documentation package after explicit commit/push approval, as required by the user's working rules.
 
-## Scheduled continuation
+## Known limitations
 
-The user authorized a daily 8:05 PM America/New_York continuation in this chat. Automation ID: `finish-payment-agent-evaluation`. It must obey the same limits and approval requirements, stay quiet for unchanged blockers, and pause once the evaluation and recording handoff are complete.
+Public fictional reviewer access is not staff authentication. Account views are bounded, the proxy rate bucket is shared, free instances can cold-start, model responses can be slow and provider outages can still occur. The answer-shape check is not semantic verification. Real payment integration would require processor idempotency, reconciliation, authentication and operational controls. No real money moves.
 
-## Post-holdout quality gate
-
-- [x] Clarify processing-versus-human-approval guidance and require one currency rendering; add four UI regression cases. All 141 key-free tests and type checking pass. This does not establish live model compliance.
-- [x] User reviewed/froze six fresh targeted checks; three refund-status cases passed automated and manual review. See `post-holdout-validation-results.md`.
-- [x] Resume only unfinished targeted cases: continuation `b968bbeb-4a66-4c7c-9876-371e39429dc9` completed the three remaining cases on October 29 UTC, with two passes and one genuine failed answer. Combined targeted results: five passes, one failure. Previous infrastructure attempts remain preserved. No completed result may be retried to improve the score.
-- [x] Handle empty, symbol-only and numeric-only final output as an explicit incomplete-investigation error without successful completion or automatic retry. Five regression cases added; 146 key-free tests and type checking pass. This narrow Unicode-letter check does not validate semantic correctness. Preserve the genuine failed answer.
-- [x] Fresh three-case smoke validation: report `7b676db5-759a-4c32-8bc8-fb7c1472ecef`, three automated/manual passes, no infrastructure errors or retries. Preserve the earlier 5/6 result. See `output-handling-validation-results.md`.
-- [x] Explicit commit/push/deploy approval received. Code `2512707` pushed; CI 40885251567 passed and Render deploy `dep-dbhku588v5cc738otc50` is live. Production migration 0006 applied without reset; dashboard/customer/payment access verified. See `rollout-2512707.md`.
-- [x] Complete public investigation after explicit user-authorized diagnostic deployment/request: run `bda46377-4ed1-40a4-856a-52e0f2969590` succeeded. Original failures remain unchanged. Do not rerun completed evaluation cases. Product verification gate is satisfied; final media and narration remain outstanding.
+The scheduled automation remains paused. The release set completed and is retired after motivating fixes. The approved qualification batch is partial after a provider quota failure and one reviewed output-quality failure. Do not make more model calls in this allowance period, infer an exact provider reset time, or retry completed failures. The user approved the answer-generation redesign, now implemented and verified locally. The partial qualification set is retired for improvement claims. Fresh validation and deployment remain pending. Existing completed evaluations must not be rerun automatically. No new dependency, provider/model change or spending increase is planned.

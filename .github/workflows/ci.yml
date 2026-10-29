@@ -32,5 +32,7 @@ jobs:
       - run: npm run eval:validate -- --split holdout
       - run: npm run eval:validate -- --split regression
       - run: npm run eval:validate -- --split validation
+      - run: npm run eval:validate -- --split release
+      - run: npm run eval:validate -- --split qualification
       - run: npm run build
       - run: npm run build:deploy

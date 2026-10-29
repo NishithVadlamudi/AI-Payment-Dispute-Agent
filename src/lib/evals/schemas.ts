@@ -10,7 +10,14 @@ export const evalCaseSchema = z.strictObject({
     transaction_ids: z.array(z.uuid()), amount_cents: z.number().int().positive().nullable(),
     decline_code: z.string().nullable(), answer_patterns: z.array(z.string().max(200)),
   }),
-  fixture: z.strictObject({ merchant: z.string().nullable(), refund_reason: z.string().nullable() }),
+  fixture: z.strictObject({ merchant: z.string().nullable(), refund_reason: z.string().nullable(),
+    scenario: z.strictObject({
+      transactions: z.array(z.strictObject({ id: z.uuid(), merchant: z.string().min(1).max(300),
+        amount_cents: z.number().int().positive(), status: z.enum(['succeeded', 'declined', 'pending']), decline_code: z.string().nullable() })).min(1).max(3),
+      refunds: z.array(z.strictObject({ transaction_id: z.uuid(), amount_cents: z.number().int().positive(),
+        status: z.enum(['pending_approval', 'pending', 'succeeded', 'rejected', 'failed']), reason: z.string().min(1).max(2000) })).max(3),
+    }).optional(),
+  }),
 });
 export type EvalCase = z.infer<typeof evalCaseSchema>;
 export const evaluationSubsetSchema = z.array(evalCaseSchema).min(1).max(50).superRefine((cases, ctx) => {

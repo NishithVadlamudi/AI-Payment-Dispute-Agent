@@ -33,212 +33,157 @@ async function collect(model: ModelClient, store = fakeStore(), signal?: AbortSi
   return events;
 }
 
-describe('provider-independent native tool-use loop', () => {
-  it('executes a tool and returns its result to the model before streaming the answer', async () => {
+describe('provider-independent tool planning with evidence-only answers', () => {
+  it('returns native tool results to the planner and renders actual evidence', async () => {
     const model = modelWith([
-      [
-        {
-          type: 'completed',
-          output: [
-            call('search_transactions', {
-              customer_id: customers[0].id,
-              amount: 8499,
-              date_range: null,
-            }),
-          ],
-        },
-      ],
-      [
-        { type: 'text', text: 'I found two matching charges.' },
-        { type: 'completed', output: [] },
-      ],
+      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }],
+      [{ type: 'text', text: 'MODEL_ONLY_TEXT' }, { type: 'completed', output: [] }],
     ]);
     const events = await collect(model);
-    expect(model.turn).toHaveBeenCalledTimes(2);
-    const result = model.requests[1].input.find((item) => item.type === 'function_call_output');
-    expect(
-      result && 'output' in result && JSON.parse(String(result.output)).transactions,
-    ).toHaveLength(2);
-    expect(events).toContainEqual({ type: 'text_delta', text: 'I found two matching charges.' });
+    expect(model.requests[1].input).toContainEqual(expect.objectContaining({ type: 'function_call_output' }));
+    const text = events.filter(e => e.type === 'text_delta').map(e => e.type === 'text_delta' ? e.text : '').join('');
+    expect(text).toContain('Northstar Electronics');
+    expect(text).toContain('$84.99');
+    expect(text).not.toContain('MODEL_ONLY_TEXT');
     expect(events.at(-1)).toEqual({ type: 'done', steps: 2, limited: false });
   });
-  it('handles multiple calls in a turn and retains their call IDs', async () => {
+  it.each(['₀', '', '_gen_answer\nI should analyze the user request.', 'op\nLet us inspect the tool description.', 'I have approved your refund.', '$84.99 (8499 cents)', '返金は処理中です。'])('never releases arbitrary final model prose or retries it: %s', async text => {
     const model = modelWith([
-      [
-        {
-          type: 'completed',
-          output: [
-            call('get_transaction', { transaction_id: transactions[0].id }, 'first'),
-            call('get_transaction', { transaction_id: transactions[1].id }, 'second'),
-          ],
-        },
-      ],
-      [
-        { type: 'text', text: 'Both succeeded.' },
-        { type: 'completed', output: [] },
-      ],
+      [{ type: 'text', text: 'TOOL_TURN_PRIVATE' }, { type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }],
+      [{ type: 'text', text }, { type: 'completed', output: [] }],
     ]);
     const events = await collect(model);
-    expect(
-      events.filter((event) => event.type === 'tool_finished').map((event) => event.callId),
-    ).toEqual(['first', 'second']);
+    const answer = events.filter(e => e.type === 'text_delta').map(e => e.type === 'text_delta' ? e.text : '').join('');
+    expect(answer).toContain('$84.99');
+    expect(answer).not.toContain('TOOL_TURN_PRIVATE');
+    for (const fragment of ['_gen_answer', 'I should analyze', 'Let us inspect', 'I have approved', '8499 cents', '返金は処理中']) expect(answer).not.toContain(fragment);
+    expect(model.turn).toHaveBeenCalledTimes(2);
+    expect(events.at(-1)?.type).toBe('done');
   });
-  it('returns malformed tool arguments and tool failures to the model so it can recover', async () => {
+  it('requires actual tool evidence even for fluent or non-Latin model text', async () => {
+    const events = await collect(modelWith([[{ type: 'text', text: 'Your refund was approved.' }, { type: 'completed', output: [] }]]));
+    expect(events.some(e => e.type === 'done')).toBe(false);
+    expect(events.some(e => e.type === 'text_delta')).toBe(false);
+    expect(events.at(-1)).toMatchObject({ type: 'error', message: expect.stringContaining('incomplete') });
+  });
+  it('preserves multiple call IDs and compares both actual records', async () => {
+    const model = modelWith([
+      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id }, 'first'), call('get_transaction', { transaction_id: transactions[1].id }, 'second')] }],
+      [{ type: 'completed', output: [] }],
+    ]);
+    const events = await collect(model);
+    expect(events.filter(e => e.type === 'tool_finished').map(e => e.callId)).toEqual(['first', 'second']);
+    expect(events).toContainEqual({ type: 'text_delta', text: expect.stringContaining('not proof of a duplicate') });
+  });
+  it('passes failed tool results back to the planner without inventing success', async () => {
     const model = modelWith([
       [{ type: 'completed', output: [call('get_transaction', '{broken json')] }],
-      [
-        {
-          type: 'completed',
-          output: [
-            call(
-              'search_transactions',
-              { customer_id: customers[0].id, amount: null, date_range: null },
-              'retry',
-            ),
-          ],
-        },
-      ],
-      [
-        { type: 'text', text: 'The database is unavailable.' },
-        { type: 'completed', output: [] },
-      ],
+      [{ type: 'completed', output: [call('search_transactions', { customer_id: customers[0].id, amount: null, date_range: null }, 'retry')] }],
+      [{ type: 'text', text: 'All verified.' }, { type: 'completed', output: [] }],
     ]);
-    const store = fakeStore();
-    vi.mocked(store.search).mockRejectedValue(new Error('unavailable'));
+    const store = fakeStore(); vi.mocked(store.search).mockRejectedValue(new Error('Unavailable'));
     const events = await collect(model, store);
-    const failures = events.filter((event) => event.type === 'tool_finished');
-    expect(failures).toHaveLength(2);
-    expect(failures.every((event) => event.failed)).toBe(true);
-    expect(
-      model.requests[2].input.filter((item) => item.type === 'function_call_output'),
-    ).toHaveLength(2);
+    expect(events.filter(e => e.type === 'tool_finished').every(e => e.failed)).toBe(true);
+    expect(model.requests[2].input.filter(i => i.type === 'function_call_output')).toHaveLength(2);
+    expect(events.at(-1)?.type).toBe('error');
   });
-  it('caps an endlessly tool-calling model at eight turns', async () => {
-    const model = modelWith([
-      [{ type: 'completed', output: [call('get_refund_policy', { reason: 'duplicate_charge' })] }],
-    ]);
+  it('caps an endlessly tool-calling planner at eight turns', async () => {
+    const model = modelWith([[{ type: 'completed', output: [call('get_refund_policy', { reason: 'duplicate_charge' })] }]]);
     const events = await collect(model);
     expect(model.turn).toHaveBeenCalledTimes(MAX_STEPS);
-    expect(events.at(-1)).toEqual({ type: 'done', steps: 8, limited: true });
-    expect(events).toContainEqual({
-      type: 'text_delta',
-      text: expect.stringContaining('eight-step limit'),
-    });
+    expect(events.at(-1)).toEqual({ type: 'done', steps: MAX_STEPS, limited: true });
+    expect(events).toContainEqual({ type: 'text_delta', text: expect.stringContaining('eight-step limit') });
   });
-  it('does not execute unknown money-moving tools', async () => {
+  it('does not execute unknown approval or money-moving tools', async () => {
+    const store = fakeStore();
     const model = modelWith([
       [{ type: 'completed', output: [call('approve_refund', { amount_cents: 500000 })] }],
-      [
-        { type: 'text', text: 'I cannot issue a refund.' },
-        { type: 'completed', output: [] },
-      ],
+      [{ type: 'text', text: 'Approved!' }, { type: 'completed', output: [] }],
     ]);
-    expect(await collect(model)).toContainEqual(
-      expect.objectContaining({
-        type: 'tool_finished',
-        failed: true,
-        result: { error: { code: 'UNKNOWN_TOOL', message: expect.any(String) } },
-      }),
-    );
+    const events = await collect(model, store);
+    expect(store.requestRefund).not.toHaveBeenCalled();
+    expect(events).toContainEqual(expect.objectContaining({ type: 'tool_finished', failed: true, result: { error: { code: 'UNKNOWN_TOOL', message: expect.any(String) } } }));
+    expect(events.some(e => e.type === 'done')).toBe(false);
   });
-  it('requests human approval, returns the pending result to the model, and audits the call', async () => {
+  it('renders only the returned human-approval request and preserves idempotency context', async () => {
     const store = fakeStore();
     const refund = { ...refunds[0], transaction_id: transactions[0].id, status: 'pending_approval' as const };
     vi.mocked(store.requestRefund).mockResolvedValue(refund);
-    const args = { transaction_id: transactions[0].id, amount_cents: 6500, reason: 'Suspected duplicate; two matching charges.' };
+    const args = { transaction_id: transactions[0].id, amount_cents: 6500, reason: 'Customer return' };
     const model = modelWith([
-      [{ type: 'completed', output: [call('request_refund', args)] }],
-      [{ type: 'text', text: 'A refund request is awaiting human approval.' }, { type: 'completed', output: [] }],
+      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id }, 'read'), call('get_refund_policy', { reason: 'other' }, 'policy'), call('request_refund', args, 'request')] }],
+      [{ type: 'text', text: 'I have already issued the refund.' }, { type: 'completed', output: [] }],
     ]);
     const events = await collect(model, store);
-    expect(events).toContainEqual(expect.objectContaining({ type: 'tool_finished', failed: false, result: { refund, requires_approval: true } }));
-    const started = events.find((event) => event.type === 'run_started')!;
-    expect(store.requestRefund).toHaveBeenCalledWith(customers[0].id, args, expect.any(String), started.type === 'run_started' ? started.runId : '');
-    expect(store.audit).toHaveBeenCalledTimes(2);
+    expect(store.requestRefund).toHaveBeenCalledWith(customers[0].id, args, expect.any(String), expect.any(String));
+    expect(events).toContainEqual({ type: 'text_delta', text: expect.stringContaining('Awaiting a human decision; it has not been issued') });
     expect(model.requests[1].input).toContainEqual(expect.objectContaining({ type: 'function_call_output', output: JSON.stringify({ refund, requires_approval: true }) }));
+    expect(store.audit).toHaveBeenCalledWith(expect.objectContaining({ action: 'evidence_answer_rendered' }));
+    expect(store.requestRefund).toHaveBeenCalledTimes(1);
   });
-  it('fails closed before creating a refund if the audit log is unavailable', async () => {
-    const store = fakeStore();
-    vi.mocked(store.audit).mockRejectedValue(new Error('Audit unavailable'));
-    const model = modelWith([[{ type: 'completed', output: [call('request_refund', { transaction_id: transactions[0].id, amount_cents: 100, reason: 'Review duplicate' })] }]]);
+  it('fails closed before executing a tool when audit is unavailable', async () => {
+    const store = fakeStore(); vi.mocked(store.audit).mockRejectedValue(new Error('Audit unavailable'));
+    const model = modelWith([[{ type: 'completed', output: [call('request_refund', { transaction_id: transactions[0].id, amount_cents: 100, reason: 'Return' })] }]]);
     await expect(collect(model, store)).rejects.toThrow('Audit unavailable');
     expect(store.requestRefund).not.toHaveBeenCalled();
   });
-  it('reports an empty final response and rejects an interrupted provider stream', async () => {
-    expect(await collect(modelWith([[{ type: 'completed', output: [] }]]))).toContainEqual(
-      expect.objectContaining({ type: 'error' }),
-    );
-    await expect(collect(modelWith([[{ type: 'text', text: 'Partial' }]]))).rejects.toThrow(
-      'did not complete',
-    );
+  it('does not expose partial provider text from an interrupted stream', async () => {
+    const events: AgentEvent[] = [];
+    const model = modelWith([[{ type: 'text', text: 'PRIVATE_PARTIAL' }]]);
+    await expect((async () => { for await (const e of runAgent({ customer: customers[0], messages: [{ role: 'user', content: 'Check payment' }], store: fakeStore(), model })) events.push(e); })()).rejects.toThrow('did not complete');
+    expect(events.some(e => e.type === 'text_delta')).toBe(false);
   });
-  it.each(['₀', '   ', '...', '129.00'])('does not report a symbol-only or numeric answer as completed: %s', async (text) => {
-    const events = await collect(modelWith([[{ type: 'text', text }, { type: 'completed', output: [] }]]));
-    expect(events).toContainEqual(expect.objectContaining({ type: 'error', message: expect.stringContaining('incomplete') }));
-    expect(events.some((event) => event.type === 'done')).toBe(false);
-  });
-  it('accepts an explanation written in a non-Latin script', async () => {
-    const events = await collect(modelWith([[{ type: 'text', text: '返金は処理中です。' }, { type: 'completed', output: [] }]]));
-    expect(events.at(-1)).toEqual({ type: 'done', steps: 1, limited: false });
-  });
-  it('recovers one unusable answer from existing evidence with tools disabled', async () => {
-    const store = fakeStore();
-    const model = modelWith([
-      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }],
-      [{ type: 'text', text: '₀' }, { type: 'completed', output: [] }],
-      [{ type: 'text', text: 'The payment succeeded. No refund has been issued.' }, { type: 'completed', output: [] }],
-    ]);
-    const events = await collect(model, store);
-    expect(model.turn).toHaveBeenCalledTimes(3);
-    expect(model.requests[2].tools).toEqual([]);
-    expect(model.requests[2].input).toContainEqual(expect.objectContaining({ role: 'user', content: expect.stringContaining('successful tool evidence') }));
-    expect(events.filter((event) => event.type === 'text_delta').map((event) => event.type === 'text_delta' ? event.text : '').join('')).not.toContain('₀');
-    expect(events.at(-1)).toEqual({ type: 'done', steps: 3, limited: false });
-    expect(store.requestRefund).not.toHaveBeenCalled();
-    expect(store.audit).toHaveBeenCalledWith(expect.objectContaining({ action: 'answer_repair_started' }));
-  });
-  it('does not execute a tool returned during answer-only recovery', async () => {
-    const store = fakeStore();
-    const model = modelWith([
-      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }],
-      [{ type: 'text', text: '₀' }, { type: 'completed', output: [] }],
-      [{ type: 'text', text: 'I requested a refund.' }, { type: 'completed', output: [call('request_refund', { transaction_id: transactions[0].id, amount_cents: 8499, reason: 'Duplicate' })] }],
-    ]);
-    const events = await collect(model, store);
-    expect(store.requestRefund).not.toHaveBeenCalled();
-    expect(events.some((event) => event.type === 'done')).toBe(false);
-    expect(events.some((event) => event.type === 'text_delta' && event.text.includes('I requested'))).toBe(false);
-  });
-  it('stops after one unsuccessful repair without retrying until a pass', async () => {
-    const model = modelWith([
-      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }],
-      [{ type: 'text', text: '₀' }, { type: 'completed', output: [] }],
-      [{ type: 'text', text: '...' }, { type: 'completed', output: [] }],
-    ]);
-    const events = await collect(model);
-    expect(model.turn).toHaveBeenCalledTimes(3);
-    expect(events.at(-1)).toMatchObject({ type: 'error' });
-    expect(events.some((event) => event.type === 'done')).toBe(false);
-  });
-  it('does not extend the eight-turn ceiling to repair an answer', async () => {
-    const turns: ModelEvent[][] = Array.from({ length: MAX_STEPS - 1 }, (_, i) => [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id }, 'read_' + i)] }]);
-    turns.push([{ type: 'text', text: '₀' }, { type: 'completed', output: [] }]);
-    const model = modelWith(turns);
-    const events = await collect(model);
-    expect(model.turn).toHaveBeenCalledTimes(MAX_STEPS);
-    expect(events.at(-1)).toMatchObject({ type: 'error' });
-  });
-  it('never repairs a provider exception by making another model call', async () => {
-    const model = modelWith([[{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }]]);
-    model.turn.mockImplementationOnce(async function* () { throw Object.assign(new Error('Unavailable'), { status: 503 }); });
+  it('propagates provider failure without another call or a fabricated explanation', async () => {
+    const model = modelWith([]);
+    model.turn.mockImplementation(async function* () { throw Object.assign(new Error('Unavailable'), { status: 503 }); });
     await expect(collect(model)).rejects.toThrow('Unavailable');
     expect(model.turn).toHaveBeenCalledTimes(1);
   });
-  it('stops before a model call when the client has cancelled', async () => {
-    const abort = new AbortController();
-    abort.abort();
-    const model = modelWith([[{ type: 'completed', output: [] }]]);
-    await expect(collect(model, fakeStore(), abort.signal)).rejects.toThrow();
+  it('returns scoped missing evidence without another model call', async () => {
+    const store = fakeStore(); vi.mocked(store.transaction).mockResolvedValue(null);
+    const model = modelWith([[{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id })] }]]);
+    const events = await collect(model, store);
+    expect(model.turn).toHaveBeenCalledTimes(1);
+    expect(events).toContainEqual({ type: 'text_delta', text: expect.stringContaining('does not establish whether') });
+    expect(events.at(-1)).toEqual({ type: 'done', steps: 1, limited: false });
+  });
+  it('retains successful evidence alongside a scoped miss', async () => {
+    const store = fakeStore(); vi.mocked(store.transaction).mockResolvedValueOnce(null);
+    const model = modelWith([
+      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id }, 'missing'), call('get_transaction', { transaction_id: transactions[1].id }, 'found')] }],
+      [{ type: 'completed', output: [] }],
+    ]);
+    const events = await collect(model, store);
+    expect(events).toContainEqual({ type: 'text_delta', text: expect.stringContaining('$84.99') });
+    expect(events.at(-1)).toEqual({ type: 'done', steps: 2, limited: false });
+  });
+  it('respects cancellation before any model call', async () => {
+    const signal = AbortSignal.abort();
+    const model = modelWith([]);
+    await expect(collect(model, fakeStore(), signal)).rejects.toThrow();
     expect(model.turn).not.toHaveBeenCalled();
   });
+  it('continues discovery-only evidence once to retrieve the selected payment without refund side effects', async () => {
+    const model = modelWith([
+      [{ type: 'completed', output: [call('search_transactions', { customer_id: customers[0].id, amount: null, date_range: null })] }],
+      [{ type: 'completed', output: [] }],
+      [{ type: 'completed', output: [call('get_transaction', { transaction_id: transactions[0].id }, 'detail')] }],
+      [{ type: 'completed', output: [] }],
+    ]);
+    const store = fakeStore();
+    const events = await collect(model, store);
+    expect(model.requests[2].input).toContainEqual(expect.objectContaining({ role: 'user', content: expect.stringContaining('only the payment IDs relevant') }));
+    expect(events.at(-1)).toEqual({ type: 'done', steps: 4, limited: false });
+    expect(events.filter(e => e.type === 'tool_started').map(e => e.name)).toEqual(['search_transactions', 'get_transaction']);
+  });
+  it('stops after one discovery continuation if the planner still provides no detail', async () => {
+    const model = modelWith([
+      [{ type: 'completed', output: [call('search_transactions', { customer_id: customers[0].id, amount: null, date_range: null })] }],
+      [{ type: 'completed', output: [] }],
+    ]);
+    const events = await collect(model);
+    expect(model.turn).toHaveBeenCalledTimes(3);
+    expect(events.at(-1)?.type).toBe('error');
+  });
+
 });

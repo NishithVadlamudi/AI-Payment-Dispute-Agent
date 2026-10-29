@@ -5,6 +5,7 @@ import { createStore } from "../src/lib/db/queries";
 import { demoId } from "../src/lib/demo/seed-data";
 import { loadPaymentWorkspace } from "../src/lib/payments/store";
 import { executeTool } from "../src/lib/tools/execute";
+import { renderEvidenceAnswer } from "../src/lib/agent/evidence-answer";
 
 if (existsSync(".env.local")) process.loadEnvFile(".env.local");
 const url = process.env.SUPABASE_URL;
@@ -88,6 +89,20 @@ describe("migrated and seeded Supabase database", () => {
     expect(await store.policy("missing_refund")).toMatchObject({
       requires_approval: true,
     });
+  });
+  it("renders actual Neon refund evidence without granting a different account access", async () => {
+    for (const [customer, transaction, status] of [[3, 1030, 'pending'], [4, 1045, 'succeeded']] as const) {
+      const input = { transaction_id: demoId(transaction) };
+      const result = await executeTool('get_transaction', input, demoId(customer), store);
+      const policyInput = { reason: 'missing_refund' };
+      const policyResult = await executeTool('get_refund_policy', policyInput, demoId(customer), store);
+      const evidence = [{ name: 'get_transaction', input, result }, { name: 'get_refund_policy', input: policyInput, result: policyResult }];
+      const answer = renderEvidenceAnswer(demoId(customer), evidence);
+      expect(answer.complete).toBe(true);
+      expect(answer.text).toContain(`**${status}**`);
+      expect(answer.text).not.toContain('/approvals');
+      expect(renderEvidenceAnswer(demoId(1), evidence).complete).toBe(false);
+    }
   });
   it("enforces positive integer cents, valid statuses, ownership, and unique payment keys in Postgres", async () => {
     const base = {

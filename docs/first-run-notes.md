@@ -1,5 +1,13 @@
 # First-run decision log
 
+## 2026-10-29 — Narrated walkthrough completed with supplied voice
+
+User supplied an ElevenLabs take lasting 74.72 seconds. Local Whisper word timestamps aligned nine scenes and 25 sentence-aware caption chunks. The ffmpeg build lacks libass/subtitles support, so captions were rendered with existing Pillow before encoding; no dependency was installed. Preserved voice pace and rendered 74.733 seconds/2,242 frames at 1920×1080, exceeding the approximate 60-second target rather than accelerating speech. Reworked sentence boundaries and limited audio peaks, then re-transcribed final encoded audio and inspected stills from all nine scenes. Final −18.8 LUFS/−1.7 dBFS true peak; maximum detected silence 0.549 seconds at −40 dB; maximum final ASR word gap 1.02 seconds. Raw ASR technical variants are retained, with intended technical spellings in captions. Updated VTT, portfolio-card links and review archive; raw MP3 excluded. No model/API generation, app change, portfolio edit, commit or push occurred. Final publication requires explicit approval including the narrated voice video. See [handoff](media/handoff.md).
+
+## 2026-10-29 — Read-only media capture, launch render and career handoff
+
+Direct headless Chrome launch aborted during macOS application registration. The user ran an isolated-profile launcher in Terminal; CDP on localhost:9223 then worked with normal sandboxing and certificate validation. Captured five actual public UI states through an unsent investigation, without submitting chat or approval. Independent Neon counts stayed two refunds/zero executions; latest agent run preceded capture. Generated a captioned five-frame/15,000-ms GIF, current screenshot and 1920×1080 launch video with exactly 600 frames/20 seconds. HTML is time-pure; actual UI crops and original 120-BPM numpy soundtrack were used. Inspected scene/transition frames and decoded scene stills; measured final audio −20.1 LUFS/−8.1 dBFS true peak. Whisper returned “Oh, oh,” on the synthesized instrumental; retained that result without claiming a spoken narration or clean transcript. Six career files and a current 154-word narration are ready. The user's ElevenLabs MP3 and final narrated-video alignment/transcription/gap checks remain required. No new dependency, paid generation, commit, push, portfolio edit or résumé-PDF edit occurred. See [handoff](media/handoff.md).
+
 ## 2026-10-29 — Diagnostic deployment and successful public Gemini investigation
 
 User approved sanitized diagnostics deployment and one public request. Commit `6fbbee4` passed CI 40906292168 with 154 tests and builds; Render Free deploy `dep-dbhmp26tlv9c7396b1h0` reached Live. Public run `bda46377-4ed1-40a4-856a-52e0f2969590` completed successfully in 98,366 ms, using search_transactions and explain_decline_code and returning the correct $129.00 insufficient-funds explanation. Independent production Neon verification confirmed succeeded status, no errors, and unchanged 20 customers/300 payments/two refunds/zero executions. Estimated configured cost 52,550 microUSD; aggregate same-day retained allocation 718,355 within unchanged 5,000,000 cap. This verifies actual public inference, not just isolated Neon. Earlier failed runs and genuine evaluation failure remain preserved. Recovery cannot be attributed to logging; exact historical 5xx status remains unknown. See [diagnosis and evidence](provider-debugging.md). No further model calls needed for this gate; move to final media preparation without inflating reliability claims.
@@ -183,3 +191,59 @@ Entries record observed evidence. Infrastructure failures are not model-accuracy
 The approved 16-case holdout completed on the persistent isolated Neon branch: 14 model-backed automated passes and two guard passes, zero infrastructure errors or inference retries. Before inference, a storage constraint rejected the small report; isolated migration 0006 and a report-boundary integration test corrected that mismatch (34 Neon integration tests passed). Frozen inference hashes stayed unchanged. Estimated cost was 576,210 microUSD, with same-day retained allocation 1,707,010 of the unchanged 5,000,000 cap. See [holdout results](holdout-results.md) for provenance and metrics.
 
 Actual-answer review found two processing refunds incorrectly described as awaiting approval, plus two awkward/incorrect intermediate cents renderings. The automated rubric did not detect those issues. We therefore do not equate 16/16 automated outcomes with perfect semantic accuracy or a finished product. Preserve this report; subsequent fixes must not be measured as untouched-holdout improvements using the same labels. Final recording remains gated on remediation and fresh validation.
+
+## 2026-10-29 — Recover malformed final answers without repeating actions
+
+**Problem and cause.** A previous targeted case retrieved the correct payment and decline reference, then returned only `₀` under a normal provider completion. Rejecting that text prevented false success but did not recover a useful answer. The observed cause is missing application recovery for unusable final text; the evidence does not establish Google's internal cause.
+
+**Fix.** Added one recovery turn from existing successful tool evidence, within the unchanged eight-turn ceiling. Gemini function calling is disabled, unexpected tool calls are rejected before execution, and recovery text is buffered until those checks pass. Exceptions and incomplete streams are not retried. Historical scores remain unchanged.
+
+**Measured result.** 160 tests, types and production build pass. A frozen isolated fault-injection check used real Neon evidence and one budget-protected Gemini call; it recovered the correct $129.00 insufficient-funds explanation with no extra tools or refund changes. The literal phrase regex missed the equivalent wording; raw false and separate manual review are both preserved. See [recovery verification](answer-recovery-verification.md).
+
+**Approved rollout.** User approved commit/push/deploy. Commit `932d8c3`, CI 40926019779 and Render deploy `dep-dbhohue1egvs7383qaq0` are verified. Public investigation `b7031395-e608-4377-b6df-7b6798d8ca3e` succeeded in 73,381 ms; independent production Neon checks found unchanged two refunds and zero executions. Same provider/model/cap; no reset or reseed. See [rollout](rollout-932d8c3.md).
+
+## 2026-10-29 — Final media and career package
+
+**Problem.** The local handoff predated the recovery deployment, and README still contained an obsolete Vercel/Supabase section plus stale test counts.
+
+**Fix.** Updated current claims to 160 passing tests and verified Render/Neon rollout; preserved historical evaluation failures and the user's original narrated take. The video says 154 tests at the earlier verified milestone; media notes explicitly distinguish it from the final 160-test suite. No voice alteration or extra paid generation was used.
+
+**Result.** Actual-UI GIF/screenshot, 20-second launch, 74.73-second narrated walkthrough, captions and six career files are prepared locally. Audio transcription/scene/loudness checks are retained. Portfolio repository and résumé PDF remain untouched. Publication requires the user's explicit approval under their commit/push rule; no secrets or raw MP3 belong in the package.
+
+## 2026-10-29 — Reopened completion before final media
+
+**Problem.** Prior measurements and fix-specific smoke checks did not provide a current-version release score. Calling the portfolio demo complete confused functional rollout verification with answer-quality measurement; the old video overemphasized historical failures.
+
+**Cause.** Old exercised prompts reused fixture values and the automatic rubric did not catch every misleading explanation. Later recovery validation deliberately injected a fault and was not a natural accuracy measurement.
+
+**Action.** Blocked media publication. Authored a new draft 24-case release set with new values and explicit full-answer criteria, including all five refund states and read-only authority. Added evaluator-only scenario construction, scope/evidence validation, a release CLI split and CI dataset validation. No agent prompt/model/provider/limits changed, no new dependency, and no model call was made. User review and source freeze precede inference.
+
+**Offline result.** 165 tests (five new release-fixture/protocol checks) and type checking pass; 24-case dataset validates. The deployed runtime remains `932d8c3`. Fresh results and a new final video remain pending; do not publish the retained media drafts.
+
+## 2026-10-29 — Frozen release completed and remediation reopened
+
+**Measured baseline.** User authorized the 24-case release review. Frozen report `e48f68f9-32cd-4941-9a8e-89aac93f9270` completed once with zero infrastructure failures: 21/24 automatic outcomes, 18/22 strict model-backed contract/full-answer outcomes and 2/2 guards separately. Three omitted required policy calls and one unsupported account-membership inference explain the strict misses. Do not call every tool-contract miss a factual error. Stray prefixes and repeated cents were retained as qualitative findings. All frozen hashes matched before remediation. See [full results](release-evaluation-results.md).
+
+**Cause and fix.** The loop released model text before knowing whether a turn contained tool calls or a valid final answer. Buffering now discards tool-turn text and validates final formatting before exposing it, using only the existing one tools-disabled recovery when needed. For an isolated all-NOT_FOUND lookup, a fixed response states only what the scoped query establishes rather than asking the model to infer another account. No new tool, approval authority, model, retry allowance or cap increase was added.
+
+**Verification.** Seven new loop tests plus a qualification-data integrity test bring the key-free suite to 173 passes; types/build pass. All 34 live database integration tests passed on persistent isolated Neon, including concurrent/double approvals. Independent cleanup check found no evaluation fixtures or executions and preserved 20 customers/300 demo payments. No production data or deployed runtime was changed. The retired release outcomes remain immutable; current fixes require fresh reviewed qualification and approved commit/push/deploy before final recording.
+
+## 2026-10-29 — Qualification partial: new output defect and provider quota
+
+**Protocol.** User approved the fresh 24-case qualification review. Recorded 36 source/protocol hashes before execution; all matched afterward. No implementation changed during inference.
+
+**Result.** Nine model cases and two guards completed; all 11 passed coarse automatic checks, but full-answer review found one genuine planning-style-output failure. Thus only 8/9 completed model cases pass reviewed requirements; the 22-model-case set is incomplete. Next attempt returned sanitized HTTP 429; runner stopped all further model calls, leaving one infrastructure attempt and twelve skips, separately preserved. The provider quota bucket/reset time is unknown. Combined retained allowance was 2,332,955/5,000,000, so the app cap was not the blocker. Failed reservation stayed allocated.
+
+**Cause evidence.** Offline replay reproduced release of planning-style narration as an ordinary final answer. Provider-tagged thought text is filtered; this response reached the ordinary text channel and evaded the narrow shape/prefix/cents checks. No raw upstream chunk history exists, so do not invent a more specific upstream cause.
+
+**Next gate.** Proposed rendering final payment/refund explanations from validated tool facts while retaining Gemini tool choice and all existing action/budget boundaries. This changes answer generation and requires user approval under their no-redesign rule. No further model calls, source change, commit, deployment or media publication occurred after the quota failure. Full evidence and proposal: [qualification results](qualification-results.md), [answer boundary](evidence-answer-proposal.md).
+
+## 2026-10-29 — Approved evidence-only final-answer renderer
+
+**Problem/cause.** A final no-tool model answer contained planning-style text through the ordinary text channel. Shape/marker checks could not give a dependable presentation boundary.
+
+**Approval/fix.** The user approved replacing arbitrary final model prose with summaries rendered from validated scoped tool evidence. Gemini still chooses existing tools. The renderer validates identities, relationships, states, currency/reserved balances and references, quotes untrusted display fields and marks missing/conflicting/partial evidence incomplete. All five refund states are explicit; only pending_approval links to review. No renderer operation creates or approves a refund. The generative answer-repair path is removed; no extra rewrite call is made.
+
+**Measured result.** 187 key-free tests, types and production build pass. All 35 isolated Neon integration checks pass, including actual refund rendering under the correct scope and rejection under another customer. Replaying the recorded output failure offline releases only the $107.90 pending-payment facts, not model narration. No Gemini calls occurred; allocation remains 1,878,025 microUSD. No evaluation fixtures/executions remain. [Full verification](evidence-answer-verification.md).
+
+**Provenance/gate.** Preserved historical scores and archived all 36 qualification-frozen byte streams with exact pre-call hashes. Retired the exposed set for improvement claims rather than mixing changed-runtime scores. The implementation is local pending explicit commit/push/deploy approval; media stays unpublished and fresh validation awaits quota and label review.
