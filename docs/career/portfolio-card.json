@@ -1,0 +1,34 @@
+{
+  "title": "Resolve \u2014 AI Payment Dispute Agent",
+  "stat": "194",
+  "statLabel": "key-free tests passed",
+  "blurb": "Gemini investigates fictional payment disputes while humans retain refund approval.",
+  "github": "https://github.com/NishithVadlamudi/AI-Payment-Dispute-Agent",
+  "demo": "https://resolve-payments.onrender.com/payments",
+  "beforeAfter": {
+    "metric": "executed key-free test count",
+    "before": 131,
+    "after": 194,
+    "accuracyImprovement": null,
+    "note": "Test counts are not coverage percentages. No comparable pre-change holdout baseline exists."
+  },
+  "poster": "docs/resolve-launch-current.png",
+  "loopVideo": "docs/resolve-launch-current.mp4",
+  "fullVideo": "docs/resolve-demo-current.mp4",
+  "assetsPending": false,
+  "kbFacts": [
+    {
+      "id": "F28",
+      "text": "Resolve uses Next.js, TypeScript, Gemini native tool use, private PostgREST and Neon Postgres to investigate fictional payment disputes with human refund approval."
+    },
+    {
+      "id": "F29",
+      "text": "Resolve verification includes 194 key-free tests, 35 isolated live Neon integration checks and independently verified public Gemini investigations."
+    },
+    {
+      "id": "F30",
+      "text": "Resolve preserves negative evaluation results: a 16-case automated holdout missed qualitative errors, and a later six-case targeted campaign retained one genuine failed answer."
+    }
+  ],
+  "integrationNote": "Current approved assets use actual deployed 88c693c UI. Walkthrough is 54.17 seconds, edited from the supplied voice at complete-sentence boundaries, with current counts shown visually. The user approved GitHub publication on October 30, 2026. Original voice and old drafts preserved. Portfolio repository and resume PDF untouched; proposed KB IDs require collision checks."
+}

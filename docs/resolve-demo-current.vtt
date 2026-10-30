@@ -1,0 +1,61 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.140
+two matching charges, one purchase.
+
+00:00:02.900 --> 00:00:05.680
+Before a refund, someone needs to check the evidence.
+
+00:00:06.360 --> 00:00:09.880
+Resolve helps investigate fictional payment disputes while keeping
+
+00:00:09.880 --> 00:00:11.740
+the final refund decision human.
+
+00:00:12.520 --> 00:00:13.340
+Start with the dashboard.
+
+00:00:14.160 --> 00:00:16.980
+Choose a customer, inspect the payment history and
+
+00:00:16.980 --> 00:00:19.140
+compare the two matching Northstar charges.
+
+00:00:19.760 --> 00:00:22.220
+Matching records are a signal, not proof.
+
+00:00:22.940 --> 00:00:25.840
+Attach a payment to an investigation, then review
+
+00:00:25.840 --> 00:00:27.620
+your question before sending it.
+
+00:00:27.620 --> 00:00:31.840
+The Gemini agent searches transactions, explains recorded decline
+
+00:00:31.840 --> 00:00:34.160
+codes, and proposes eligible refunds.
+
+00:00:35.020 --> 00:00:36.120
+It cannot approve them.
+
+00:00:36.780 --> 00:00:39.400
+Next.js serves the interface and server.
+
+00:00:40.060 --> 00:00:43.000
+A private PostgREST adapter connects to Neon Postgres.
+
+00:00:43.540 --> 00:00:47.180
+Integer cents, database locks, and Unique Execution Keys
+
+00:00:47.180 --> 00:00:48.720
+protect the mock refund ledger.
+
+00:00:49.360 --> 00:00:50.140
+Explore the live demo.
+
+00:00:50.980 --> 00:00:51.800
+Investigate the charge.
+
+00:00:52.520 --> 00:00:53.720
+Keep the decision human.

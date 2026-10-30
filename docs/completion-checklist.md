@@ -18,9 +18,9 @@
 - [x] Reviewed/froze 24 fresh evidence-boundary cases and completed every outcome across two compatible reports. Sixteen passing cases were preserved through one harness connection interruption; only eight unfinished cases continued. All 38 original hashes matched after inference. [Results](evidence-qualification-results.md).
 - [x] Reviewed final answers/tool traces: 22/22 model automatic checks, **21/22 full-answer model reviews**, 2/2 guards; one earlier infrastructure attempt retained, zero unfinished cases. Synthetic result only.
 - [x] Corrected the remaining answer-fulfillment gap locally: explicit balance upper bound and no-new-request statement when no mutation was attempted. Recorded-trace offline replay passes; historical failure remains unchanged.
-- [ ] Obtain approval, commit/push/deploy the deterministic presentation correction and evaluation evidence, then verify the hosted correction. Do not present the old 21/22 score as a new measurement of changed code.
-- [ ] Make the final recording using the verified deployed behavior and current counts; existing narrated media and career assets are drafts with older test counts. Do not publish those as current final evidence.
-- [ ] Obtain explicit approval for final media commits/push/publication under the user's working rules.
+- [x] User-approved deterministic correction/evaluation evidence pushed as 88c693c. CI passed; Render Free deployment and public read-only balance-limit check independently verified in production Neon. All 22 saved tool traces pass deterministic replay; original 21/22 model review remains unchanged.
+- [x] Prepared current 54.17-second narrated walkthrough, 20-second launch, 15-second GIF, screenshot, captions and six updated career files. Actual public 88c693c UI; audio/transcription/scene checks pass. [Current review package](media/current-handoff.md).
+- [x] User reviewed the concrete current media/handoff package and explicitly approved GitHub publication on October 30, 2026.
 
 ## Preserved historical evaluation
 

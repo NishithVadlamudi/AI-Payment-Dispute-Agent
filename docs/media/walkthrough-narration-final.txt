@@ -1,0 +1,13 @@
+Two matching charges. One purchase. Before a refund, someone needs to check the evidence.
+
+Resolve helps investigate fictional payment disputes while keeping the final refund decision human.
+
+Start with the dashboard. Choose a customer, inspect the payment history, and compare the two matching Northstar charges.
+
+Matching records are a signal, not proof. Attach a payment to an investigation, then review your question before sending it.
+
+The Gemini agent searches transactions, explains recorded decline codes, and proposes eligible refunds. It cannot approve them.
+
+Next.js serves the interface and server. A private PostgREST adapter connects to Neon Postgres. Integer cents, database locks, and unique execution keys protect the mock refund ledger.
+
+Explore the live demo. Investigate the charge. Keep the decision human.

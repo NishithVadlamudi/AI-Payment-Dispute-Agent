@@ -27,3 +27,7 @@ The workspace preserves both reports and complete runs/tool evidence, a case-lev
 ## Subsequent local presentation correction
 
 After recording the completed review and matching frozen hashes, added explicit verified-balance upper-bound wording and a no-new-request statement only when no request_refund tool was attempted. Uncertain mutation errors never produce a false no-request assertion. This is a deterministic presentation correction, not a new model pass: the completed 21/22 result and reviewed failure remain unchanged, and this exposed set is retired for improvement claims. Offline replay of the recorded $91.38 trace now supplies both statements. Production build/type checking pass. The fix remains local pending explicit commit/push/deploy approval; no further model call was made.
+
+## Approved deployment and correction verification
+
+The user subsequently approved deployment. Correction/evidence commit 88c693c passed CI 40955752970 and existing Render Free deployment dep-dbhrdukipgvc73dhm63g reached Live. Public read-only run a4068f1e-db0d-4822-b5e0-5eb2c1352612 verified the actual $106.29 balance, explicit upper-bound wording and no-new-request statement in 7,808 ms, independently checked in production Neon with unchanged refunds. On October 30, all 22 saved completed model-tool traces passed deterministic renderer replay. This is known-trace regression verification, not a new model score. The historical 21/22 result remains unchanged. Current media is prepared locally for user review.
